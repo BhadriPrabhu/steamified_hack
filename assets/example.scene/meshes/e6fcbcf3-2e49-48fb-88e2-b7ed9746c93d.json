@@ -1,0 +1,166 @@
+{
+    "meshes": [
+        {
+            "name": "venturiSeg_10",
+            "id": "e6fcbcf3-2e49-48fb-88e2-b7ed9746c93d",
+            "uniqueId": 1779214073087,
+            "type": "Mesh",
+            "position": [
+                10,
+                0,
+                0
+            ],
+            "rotation": [
+                0,
+                0,
+                1.5707963267948966
+            ],
+            "scaling": [
+                1,
+                1,
+                1
+            ],
+            "localMatrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
+            "isEnabled": true,
+            "isVisible": true,
+            "infiniteDistance": false,
+            "pickable": true,
+            "receiveShadows": false,
+            "billboardMode": 0,
+            "visibility": 1,
+            "alwaysSelectAsActiveMesh": false,
+            "checkCollisions": false,
+            "ellipsoid": [
+                0.5,
+                1,
+                0.5
+            ],
+            "ellipsoidOffset": [
+                0,
+                0,
+                0
+            ],
+            "doNotSyncBoundingInfo": false,
+            "isBlocker": false,
+            "sideOrientation": 1,
+            "isUnIndexed": false,
+            "geometryUniqueId": 63,
+            "geometryId": "a394c406-513c-4633-b875-0c44fb6b94e9",
+            "subMeshes": null,
+            "materialId": "default material",
+            "metadata": {},
+            "instances": [],
+            "animations": [],
+            "ranges": [],
+            "layerMask": 268435455,
+            "alphaIndex": 1.7976931348623157e+308,
+            "hasVertexAlpha": false,
+            "overlayAlpha": 0,
+            "overlayColor": [
+                0,
+                0,
+                0
+            ],
+            "renderOverlay": false,
+            "applyFog": true,
+            "delayLoadingFile": "assets/example.scene/geometries/a394c406-513c-4633-b875-0c44fb6b94e9.babylonbinarymeshdata",
+            "boundingBoxMaximum": [
+                0.3,
+                0.95,
+                0.3
+            ],
+            "boundingBoxMinimum": [
+                -0.3,
+                -0.95,
+                -0.3
+            ],
+            "_binaryInfo": {
+                "positionsAttrDesc": {
+                    "count": 306,
+                    "stride": 3,
+                    "offset": 0,
+                    "dataType": 1
+                },
+                "normalsAttrDesc": {
+                    "count": 306,
+                    "stride": 3,
+                    "offset": 1224,
+                    "dataType": 1
+                },
+                "uvsAttrDesc": {
+                    "count": 204,
+                    "stride": 2,
+                    "offset": 2448,
+                    "dataType": 1
+                },
+                "indicesAttrDesc": {
+                    "count": 288,
+                    "stride": 1,
+                    "offset": 3264,
+                    "dataType": 0
+                },
+                "subMeshesAttrDesc": {
+                    "count": 1,
+                    "stride": 5,
+                    "offset": 4416,
+                    "dataType": 0
+                }
+            },
+            "positions": null,
+            "normals": null,
+            "uvs": null,
+            "hasUVs": true,
+            "indices": null
+        }
+    ],
+    "transformNodes": [],
+    "cameras": [],
+    "lights": [],
+    "materials": [],
+    "geometries": {
+        "boxes": [],
+        "spheres": [],
+        "cylinders": [],
+        "toruses": [],
+        "grounds": [],
+        "planes": [],
+        "torusKnots": [],
+        "vertexData": []
+    },
+    "metadata": {},
+    "basePoseMatrix": [
+        2.220446049250313e-16,
+        -1,
+        0,
+        0,
+        1,
+        2.220446049250313e-16,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -2.220446049250313e-15,
+        10,
+        0,
+        1
+    ]
+}

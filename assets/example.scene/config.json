@@ -11,6 +11,7 @@
         0
     ],
     "environment": {
+        "iblIntensity": 1,
         "environmentIntensity": 1,
         "environmentTexture": {
             "tags": null,
@@ -109,13 +110,25 @@
             "ssrRenderingPipeline": null,
             "motionBlurPostProcess": null,
             "defaultRenderingPipeline": null,
+            "taaRenderingPipeline": null,
             "iblShadowsRenderPipeline": null
         },
         {
-            "cameraId": "3ee0f345-7bea-4f59-a657-28c90a7d5e74"
+            "cameraId": "ed771328-5b43-45b8-9403-7e3b5397e817"
         }
     ],
-    "metadata": {},
+    "metadata": {
+        "rendering": [
+            {
+                "cameraId": "ed771328-5b43-45b8-9403-7e3b5397e817"
+            }
+        ],
+        "physicsGravity": [
+            0,
+            -981,
+            0
+        ]
+    },
     "editorCamera": {
         "tags": null,
         "ellipsoid": [
@@ -132,15 +145,15 @@
         "applyGravity": false,
         "updateUpVectorFromRotation": false,
         "rotation": [
-            0.1371668477935948,
-            -0.7570271652108816,
+            0.39882083600600043,
+            -0.7892927728957319,
             0
         ],
         "speed": 200,
         "position": [
-            461.58465792469366,
-            140.63771402557663,
-            -488.54810769867925
+            18.75656973011029,
+            10.134317901318083,
+            -15.701224335329492
         ],
         "upVector": [
             0,
@@ -156,16 +169,16 @@
         "layerMask": 268435455,
         "fovMode": 0,
         "cameraRigMode": 0,
+        "ignoreCameraMaxZ": false,
         "name": "Editor preview",
         "id": "3cc9ef80-8c60-43e0-bcc4-1b55ff36010d",
         "state": "",
-        "uniqueId": 5,
         "type": "EditorCamera",
         "inputsmgr": {
             "FreeCameraKeyboardMoveInput": {
                 "tags": null,
                 "keysUp": [
-                    90
+                    87
                 ],
                 "keysUpward": [
                     69
@@ -174,10 +187,10 @@
                     83
                 ],
                 "keysDownward": [
-                    65
+                    81
                 ],
                 "keysLeft": [
-                    81
+                    65
                 ],
                 "keysRight": [
                     68

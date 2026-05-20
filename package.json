@@ -8,7 +8,8 @@
 		"build": "next build",
 		"generate": "babylonjs-editor-cli pack",
 		"start": "next start",
-		"lint": "next lint"
+		"lint": "next lint",
+		"bake:editor": "node scripts/bake-lab.mjs"
 	},
 	"dependencies": {
 		"@babylonjs/addons": "8.56.2",

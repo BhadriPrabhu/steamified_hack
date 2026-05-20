@@ -39,7 +39,7 @@
                 1
             ],
             "isEnabled": true,
-            "isVisible": true,
+            "isVisible": false,
             "infiniteDistance": false,
             "pickable": true,
             "receiveShadows": true,
@@ -80,7 +80,8 @@
                                 "type": "number",
                                 "value": 0.04
                             }
-                        }
+                        },
+                        "_id": "62064216-1b93-40ba-a716-69c81258652c"
                     }
                 ]
             },
@@ -96,7 +97,7 @@
                 0,
                 0
             ],
-            "renderOverlay": true,
+            "renderOverlay": false,
             "applyFog": true,
             "delayLoadingFile": "assets/example.scene/geometries/0ba89c0a-1fc1-414a-af14-ffbc7ee3200d.babylonbinarymeshdata",
             "boundingBoxMaximum": [
@@ -204,6 +205,7 @@
                 "animations": [],
                 "invertY": true,
                 "samplingMode": 3,
+                "_creationFlags": 0,
                 "_useSRGBBuffer": false,
                 "noMipmap": false
             },
@@ -348,7 +350,7 @@
             "zOffsetUnits": 0,
             "pointsCloud": false,
             "fillMode": 0,
-            "_setVertexOutputInvariant": false,
+            "_isVertexOutputInvariant": false,
             "transparencyMode": 0,
             "stencil": {
                 "tags": null,
@@ -526,7 +528,8 @@
                         "type": "number",
                         "value": 0.04
                     }
-                }
+                },
+                "_id": "62064216-1b93-40ba-a716-69c81258652c"
             }
         ]
     },

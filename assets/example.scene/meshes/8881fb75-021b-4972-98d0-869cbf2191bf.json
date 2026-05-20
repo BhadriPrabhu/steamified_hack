@@ -1,0 +1,165 @@
+{
+    "meshes": [
+        {
+            "name": "waterCol_9",
+            "id": "8881fb75-021b-4972-98d0-869cbf2191bf",
+            "uniqueId": 1779214073044,
+            "type": "Mesh",
+            "position": [
+                8,
+                0,
+                0
+            ],
+            "rotation": [
+                0,
+                0,
+                0
+            ],
+            "scaling": [
+                1,
+                1,
+                1
+            ],
+            "localMatrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0.5,
+                0,
+                1
+            ],
+            "isEnabled": true,
+            "isVisible": true,
+            "infiniteDistance": false,
+            "pickable": true,
+            "receiveShadows": false,
+            "billboardMode": 0,
+            "visibility": 1,
+            "alwaysSelectAsActiveMesh": false,
+            "checkCollisions": false,
+            "ellipsoid": [
+                0.5,
+                1,
+                0.5
+            ],
+            "ellipsoidOffset": [
+                0,
+                0,
+                0
+            ],
+            "doNotSyncBoundingInfo": false,
+            "isBlocker": false,
+            "sideOrientation": 1,
+            "isUnIndexed": false,
+            "geometryUniqueId": 61,
+            "geometryId": "7163b1f0-7aa7-45a3-a409-56ee43f637a8",
+            "subMeshes": null,
+            "materialId": "default material",
+            "metadata": {},
+            "instances": [],
+            "animations": [],
+            "ranges": [],
+            "layerMask": 268435455,
+            "alphaIndex": 1.7976931348623157e+308,
+            "hasVertexAlpha": false,
+            "overlayAlpha": 1,
+            "overlayColor": [
+                0,
+                0,
+                0
+            ],
+            "applyFog": true,
+            "delayLoadingFile": "assets/example.scene/geometries/7163b1f0-7aa7-45a3-a409-56ee43f637a8.babylonbinarymeshdata",
+            "boundingBoxMaximum": [
+                0.065,
+                0.5,
+                0.065
+            ],
+            "boundingBoxMinimum": [
+                -0.065,
+                -0.5,
+                -0.065
+            ],
+            "_binaryInfo": {
+                "positionsAttrDesc": {
+                    "count": 306,
+                    "stride": 3,
+                    "offset": 0,
+                    "dataType": 1
+                },
+                "normalsAttrDesc": {
+                    "count": 306,
+                    "stride": 3,
+                    "offset": 1224,
+                    "dataType": 1
+                },
+                "uvsAttrDesc": {
+                    "count": 204,
+                    "stride": 2,
+                    "offset": 2448,
+                    "dataType": 1
+                },
+                "indicesAttrDesc": {
+                    "count": 288,
+                    "stride": 1,
+                    "offset": 3264,
+                    "dataType": 0
+                },
+                "subMeshesAttrDesc": {
+                    "count": 1,
+                    "stride": 5,
+                    "offset": 4416,
+                    "dataType": 0
+                }
+            },
+            "positions": null,
+            "normals": null,
+            "uvs": null,
+            "hasUVs": true,
+            "indices": null
+        }
+    ],
+    "transformNodes": [],
+    "cameras": [],
+    "lights": [],
+    "materials": [],
+    "geometries": {
+        "boxes": [],
+        "spheres": [],
+        "cylinders": [],
+        "toruses": [],
+        "grounds": [],
+        "planes": [],
+        "torusKnots": [],
+        "vertexData": []
+    },
+    "metadata": {},
+    "basePoseMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -8,
+        -0.5,
+        0,
+        1
+    ]
+}

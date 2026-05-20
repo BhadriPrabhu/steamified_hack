@@ -1,0 +1,64 @@
+{
+    "tags": null,
+    "position": [
+        0,
+        0,
+        0
+    ],
+    "rotation": [
+        0,
+        0,
+        0
+    ],
+    "scaling": [
+        1,
+        1,
+        1
+    ],
+    "billboardMode": 0,
+    "scalingDeterminant": 1,
+    "infiniteDistance": false,
+    "ignoreNonUniformScaling": false,
+    "reIntegrateRotationIntoRotationQuaternion": false,
+    "name": "SystemController",
+    "id": "daf2edb9-955e-4382-b524-19cca57e4a84",
+    "state": "",
+    "metadata": {
+        "scripts": [
+            {
+                "enabled": true,
+                "key": "scripts/venturiController.ts",
+                "_id": "434c14bf-31cf-41fe-9b1b-3dafbbe68ba8",
+                "values": {
+                    "flowRateQ": {
+                        "type": "number",
+                        "value": 0.03
+                    }
+                }
+            }
+        ]
+    },
+    "type": "TransformNode",
+    "uniqueId": 1779215032725,
+    "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+    ],
+    "isEnabled": true,
+    "animations": [],
+    "ranges": []
+}

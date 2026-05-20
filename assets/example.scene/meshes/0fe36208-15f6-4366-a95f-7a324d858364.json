@@ -69,7 +69,17 @@
             "metadata": {
                 "type": "Ground",
                 "width": 102400,
-                "height": 102400
+                "height": 102400,
+                "minHeight": 0,
+                "maxHeight": 150,
+                "smoothFactor": 0,
+                "heightMapTexturePath": null,
+                "alphaFilter": 0,
+                "colorFilter": [
+                    1,
+                    1,
+                    1
+                ]
             },
             "instances": [],
             "animations": [],
@@ -83,7 +93,7 @@
                 0,
                 0
             ],
-            "renderOverlay": true,
+            "renderOverlay": false,
             "applyFog": true,
             "subdivisionsX": 1,
             "subdivisionsY": 1,
@@ -199,6 +209,7 @@
                 "animations": [],
                 "invertY": true,
                 "samplingMode": 3,
+                "_creationFlags": 0,
                 "_useSRGBBuffer": false,
                 "noMipmap": false
             },
@@ -343,7 +354,7 @@
             "zOffsetUnits": 0,
             "pointsCloud": false,
             "fillMode": 0,
-            "_setVertexOutputInvariant": false,
+            "_isVertexOutputInvariant": false,
             "transparencyMode": 0,
             "stencil": {
                 "tags": null,
@@ -510,7 +521,17 @@
     "metadata": {
         "type": "Ground",
         "width": 102400,
-        "height": 102400
+        "height": 102400,
+        "minHeight": 0,
+        "maxHeight": 150,
+        "smoothFactor": 0,
+        "heightMapTexturePath": null,
+        "alphaFilter": 0,
+        "colorFilter": [
+            1,
+            1,
+            1
+        ]
     },
     "basePoseMatrix": [
         1,
