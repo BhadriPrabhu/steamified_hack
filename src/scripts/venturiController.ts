@@ -40,7 +40,7 @@ export default class VenturiController implements IScript {
     public onStart(): void {
         const scene = this.mesh.getScene();
 
-        // --- 1. LIGHTING ---
+        // --- 1. LIGHTING (FIXED WHITE SHADOWS) ---
         if (scene.lights.length === 0) {
             const hemiLight = new HemisphericLight("hemiLight", new Vector3(0, 1, 0), scene);
             hemiLight.intensity = 0.5; 
@@ -52,6 +52,7 @@ export default class VenturiController implements IScript {
             dirLight.specular = new Color3(0, 0, 0); 
         }
         
+        // This stops the scene from glowing bright white
         scene.ambientColor = new Color3(0.2, 0.2, 0.22);
 
         // --- 2. BLOOM ---
@@ -61,7 +62,7 @@ export default class VenturiController implements IScript {
         pipeline.bloomThreshold = 0.8; 
         pipeline.bloomWeight = 0.35; 
 
-        // --- 3. MATERIALS ---
+        // --- 3. MATERIALS (RESTORED INDUSTRIAL GUNMETAL) ---
         const fluidMat = new StandardMaterial("fluidMat", scene);
         fluidMat.diffuseColor = new Color3(0.0, 0.4, 1.0);
         fluidMat.emissiveColor = new Color3(0.1, 0.5, 1.5); 
@@ -88,6 +89,7 @@ export default class VenturiController implements IScript {
         tankGlassMat.backFaceCulling = false;
 
         const metalMat = new StandardMaterial("metalMat", scene);
+        // CRITICAL FIX: Dark gunmetal, NO blinding white ambient color
         metalMat.diffuseColor = new Color3(0.18, 0.18, 0.2); 
         metalMat.specularColor = new Color3(0.1, 0.1, 0.1); 
         metalMat.ambientColor = new Color3(0.2, 0.2, 0.2); 
@@ -156,14 +158,14 @@ export default class VenturiController implements IScript {
         this.flowParticles.gravity = new Vector3(0, 0, 0); 
         this.flowParticles.start();
 
-        // --- 7. REAL-TIME HOLOGRAPHIC DASHBOARD (THE WINNING TOUCH) ---
-        const dashboardPlane = MeshBuilder.CreatePlane("dashboardPlane", { width: 14000, height: 3500 }, scene);
-        dashboardPlane.position.set(0, 8500, 2000); // Floating high up in the background
+        // --- 7. REAL-TIME HOLOGRAPHIC DASHBOARD ---
+        const dashboardPlane = MeshBuilder.CreatePlane("dashboardPlane", { width: 14000, height: 7000 }, scene);
+        dashboardPlane.position.set(0, 10000, 2500); 
         
-        this.dashboardTexture = new DynamicTexture("dashboardTex", {width: 2048, height: 512}, scene, true);
+        this.dashboardTexture = new DynamicTexture("dashboardTex", {width: 2048, height: 1024}, scene, true);
         const dashMat = new StandardMaterial("dashMat", scene);
         dashMat.diffuseTexture = this.dashboardTexture;
-        dashMat.emissiveColor = new Color3(1, 1, 1); // Makes the text glow with Bloom!
+        dashMat.emissiveColor = new Color3(1, 1, 1);
         dashMat.alpha = 0.9;
         dashMat.backFaceCulling = false;
         dashboardPlane.material = dashMat;
@@ -171,8 +173,8 @@ export default class VenturiController implements IScript {
         // --- 8. PERFECT CAMERA FRAMING ---
         const activeCamera = scene.activeCamera as ArcRotateCamera;
         if (activeCamera instanceof ArcRotateCamera) {
-            activeCamera.target.set(0, 4000, 0); // Aimed slightly higher to see the dashboard
-            activeCamera.radius = 18000; // Zoomed out slightly to fit everything perfectly
+            activeCamera.target.set(0, 5000, 0); 
+            activeCamera.radius = 18000; 
             activeCamera.maxZ = 100000;
             
             const camLight = new PointLight("camLight", Vector3.Zero(), scene);
@@ -197,6 +199,7 @@ export default class VenturiController implements IScript {
 
                 waterMesh.scaling.y += (targetVisualHeight - waterMesh.scaling.y) * 0.08 * deltaTime;
                 waterMesh.position.y = (waterMesh.scaling.y / 2) + 10; 
+                // CRITICAL FIX: renderingGroupId removed so water sits INSIDE the metal caps!
             }
 
             const exitV = this.flowRateQ / this.areas[this.areas.length - 1];
@@ -210,28 +213,65 @@ export default class VenturiController implements IScript {
             // --- REAL-TIME TELEMETRY DRAWING ---
             if (this.dashboardTexture) {
                 const ctx = this.dashboardTexture.getContext();
-                ctx.fillStyle = "#0d1117"; // Sleek dark digital background
-                ctx.fillRect(0, 0, 2048, 512);
+                ctx.fillStyle = "#0d1117"; 
+                ctx.fillRect(0, 0, 2048, 1024);
                 
-                ctx.fillStyle = "#00e6ff"; // Cyan title
+                // Neon Border
+                ctx.strokeStyle = "#00e6ff";
+                ctx.lineWidth = 10;
+                ctx.strokeRect(10, 10, 2028, 1004);
+
+                ctx.fillStyle = "#00e6ff"; 
                 ctx.font = "bold 80px Courier New";
                 (ctx as any).textAlign = "center";
-                ctx.fillText("VENTURI METER TELEMETRY", 1024, 120);
+                ctx.fillText("VENTURI METER TELEMETRY", 1024, 100);
 
-                // Math for the throat (Index 5 is the narrowest point)
+                // Math for Inlet (Area 0) and Throat (Area 5)
+                const inletV = this.flowRateQ / this.areas[0];
+                const inletP = Math.max(1.6, this.totalHeadH - (Math.pow(inletV, 2) / (2 * this.g)));
+
                 const throatV = this.flowRateQ / this.areas[5];
                 const throatP = Math.max(1.6, this.totalHeadH - (Math.pow(throatV, 2) / (2 * this.g)));
                 
+                const deltaP = inletP - throatP;
+
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 60px Courier New";
+                ctx.fillText(`SYSTEM FLOW RATE (Q): ${this.flowRateQ.toFixed(3)} m³/s`, 1024, 220);
+                
+                if (this.runStopwatch === 1) {
+                    ctx.fillStyle = "#00ffaa"; // Neon Green
+                    ctx.fillText(`COLLECTED VOLUME: ${this.collectedVolume.toFixed(1)} L`, 1024, 300);
+                } else {
+                    ctx.fillStyle = "#666666"; // Grey
+                    ctx.fillText(`STOPWATCH: OFFLINE`, 1024, 300);
+                }
+
+                // Column Headers
+                ctx.fillStyle = "#aaaaaa";
+                ctx.font = "50px Courier New";
+                ctx.fillText("--- INLET (WIDE) ---", 512, 450);
+                ctx.fillText("--- THROAT (NARROW) ---", 1536, 450);
+
+                // Core Data Comparison
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "60px Courier New";
-                ctx.fillText(`SYSTEM Q: ${this.flowRateQ.toFixed(3)} m³/s  |  THROAT VELOCITY: ${throatV.toFixed(2)} m/s`, 1024, 280);
+                ctx.fillText(`Velocity : ${inletV.toFixed(2)} m/s`, 512, 550);
+                ctx.fillText(`Velocity : ${throatV.toFixed(2)} m/s`, 1536, 550);
                 
-                ctx.fillStyle = "#ff4444"; // Red to match the EGL line
-                ctx.fillText(`THROAT PRESSURE HEAD: ${throatP.toFixed(2)} m`, 1024, 400);
+                ctx.fillText(`Pressure : ${inletP.toFixed(2)} m`, 512, 650);
+                ctx.fillText(`Pressure : ${throatP.toFixed(2)} m`, 1536, 650);
+
+                // The Bernoulli Proof
+                ctx.fillStyle = "#ff4444"; 
+                ctx.font = "bold 70px Courier New";
+                ctx.fillText(`ΔP (HEAD DIFFERENCE): ${deltaP.toFixed(2)} m`, 1024, 850);
 
                 this.dashboardTexture.update();
             }
         }
+
+        // 2. Volumetric Discharge Measurement (Filling the Tank)
 
         // 2. Volumetric Discharge Measurement 
         if (this.runStopwatch === 1 && this.collectingWater) {

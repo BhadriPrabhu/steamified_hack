@@ -67,12 +67,12 @@ const supplyHeight = 8000;
 const supplyTank = MeshBuilder.CreateCylinder("supplyTank", { height: supplyHeight, diameter: 4 * S * T, tessellation: 64 }, scene);
 supplyTank.position.set(-6 * step, tableTopY + (supplyHeight / 2), 0); 
 
-// 9. Collecting Tank (BUG FIX: Perfectly anchored to table now)
+// 9. Collecting Tank (Cleaned up and anchored perfectly)
 const collectHeight = 4000;
 const collectingTank = MeshBuilder.CreateBox("collectingTank", { width: 3 * S * T, height: collectHeight, depth: 3 * S * T }, scene);
 collectingTank.position.set(6 * step, tableTopY + (collectHeight / 2), 0); 
 
-// 10. Collecting Water (BUG FIX: Perfectly anchored to table now)
+// 10. Collecting Water
 const collectingWater = MeshBuilder.CreateBox("collectingWater", { width: 2.8 * S * T, height: 1.0, depth: 2.8 * S * T }, scene);
 collectingWater.position.set(6 * step, tableTopY, 0);
 

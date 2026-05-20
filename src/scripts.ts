@@ -4,12 +4,12 @@
  */
 
 import { loadScene, scriptsDictionary, scriptAssetsCache, _applyScriptsForObject, _removeRegisteredScriptInstance, _preloadScriptsAssets } from "babylonjs-editor-tools";
-import * as scripts_venturiController from "./scripts/venturiController";
 import * as scripts_box from "./scripts/box";
+import * as scripts_venturiController from "./scripts/venturiController";
 
 export const scriptsMap = {
-    "scripts/venturiController.ts": scripts_venturiController,
-	"scripts/box.ts": scripts_box
+    "scripts/box.ts": scripts_box,
+	"scripts/venturiController.ts": scripts_venturiController
 };
 
 export { loadScene, scriptsDictionary, scriptAssetsCache, _applyScriptsForObject, _removeRegisteredScriptInstance, _preloadScriptsAssets };

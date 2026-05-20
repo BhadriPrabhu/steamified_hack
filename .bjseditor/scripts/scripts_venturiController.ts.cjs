@@ -145800,9 +145800,9 @@ var VenturiController = class {
     this.flowParticles.direction2 = new Vector3(1, 0, 0);
     this.flowParticles.gravity = new Vector3(0, 0, 0);
     this.flowParticles.start();
-    const dashboardPlane = MeshBuilder.CreatePlane("dashboardPlane", { width: 14e3, height: 3500 }, scene);
-    dashboardPlane.position.set(0, 8500, 2e3);
-    this.dashboardTexture = new DynamicTexture("dashboardTex", { width: 2048, height: 512 }, scene, true);
+    const dashboardPlane = MeshBuilder.CreatePlane("dashboardPlane", { width: 14e3, height: 7e3 }, scene);
+    dashboardPlane.position.set(0, 1e4, 2500);
+    this.dashboardTexture = new DynamicTexture("dashboardTex", { width: 2048, height: 1024 }, scene, true);
     const dashMat = new StandardMaterial("dashMat", scene);
     dashMat.diffuseTexture = this.dashboardTexture;
     dashMat.emissiveColor = new Color3(1, 1, 1);
@@ -145841,18 +145841,42 @@ var VenturiController = class {
       if (this.dashboardTexture) {
         const ctx = this.dashboardTexture.getContext();
         ctx.fillStyle = "#0d1117";
-        ctx.fillRect(0, 0, 2048, 512);
+        ctx.fillRect(0, 0, 2048, 1024);
+        ctx.strokeStyle = "#00e6ff";
+        ctx.lineWidth = 10;
+        ctx.strokeRect(10, 10, 2028, 1004);
         ctx.fillStyle = "#00e6ff";
         ctx.font = "bold 80px Courier New";
         ctx.textAlign = "center";
-        ctx.fillText("VENTURI METER TELEMETRY", 1024, 120);
+        ctx.fillText("VENTURI METER TELEMETRY", 1024, 100);
+        const inletV = this.flowRateQ / this.areas[0];
+        const inletP = Math.max(1.6, this.totalHeadH - Math.pow(inletV, 2) / (2 * this.g));
         const throatV = this.flowRateQ / this.areas[5];
         const throatP = Math.max(1.6, this.totalHeadH - Math.pow(throatV, 2) / (2 * this.g));
+        const deltaP = inletP - throatP;
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 60px Courier New";
+        ctx.fillText(`SYSTEM FLOW RATE (Q): ${this.flowRateQ.toFixed(3)} m\xB3/s`, 1024, 220);
+        if (this.runStopwatch === 1) {
+          ctx.fillStyle = "#00ffaa";
+          ctx.fillText(`COLLECTED VOLUME: ${this.collectedVolume.toFixed(1)} L`, 1024, 300);
+        } else {
+          ctx.fillStyle = "#666666";
+          ctx.fillText(`STOPWATCH: OFFLINE`, 1024, 300);
+        }
+        ctx.fillStyle = "#aaaaaa";
+        ctx.font = "50px Courier New";
+        ctx.fillText("--- INLET (WIDE) ---", 512, 450);
+        ctx.fillText("--- THROAT (NARROW) ---", 1536, 450);
         ctx.fillStyle = "#ffffff";
         ctx.font = "60px Courier New";
-        ctx.fillText(`SYSTEM Q: ${this.flowRateQ.toFixed(3)} m\xB3/s  |  THROAT VELOCITY: ${throatV.toFixed(2)} m/s`, 1024, 280);
+        ctx.fillText(`Velocity : ${inletV.toFixed(2)} m/s`, 512, 550);
+        ctx.fillText(`Velocity : ${throatV.toFixed(2)} m/s`, 1536, 550);
+        ctx.fillText(`Pressure : ${inletP.toFixed(2)} m`, 512, 650);
+        ctx.fillText(`Pressure : ${throatP.toFixed(2)} m`, 1536, 650);
         ctx.fillStyle = "#ff4444";
-        ctx.fillText(`THROAT PRESSURE HEAD: ${throatP.toFixed(2)} m`, 1024, 400);
+        ctx.font = "bold 70px Courier New";
+        ctx.fillText(`\u0394P (HEAD DIFFERENCE): ${deltaP.toFixed(2)} m`, 1024, 850);
         this.dashboardTexture.update();
       }
     }
