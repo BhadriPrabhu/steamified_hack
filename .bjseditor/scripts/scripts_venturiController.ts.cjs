@@ -112540,6 +112540,264 @@ ParticleSystem.BILLBOARDMODE_STRETCHED = 8;
 ParticleSystem.BILLBOARDMODE_STRETCHED_LOCAL = 9;
 SubEmitter._ParseParticleSystem = ParticleSystem.Parse;
 
+// ../../../../../../Desktop/Project/Event/Steamified/node_modules/@babylonjs/core/Engines/Extensions/engine.dynamicTexture.js
+init_tools_functions();
+init_thinEngine();
+init_internalTexture();
+ThinEngine.prototype.createDynamicTexture = function(width, height, generateMipMaps, samplingMode) {
+  const texture = new InternalTexture(
+    this,
+    4
+    /* InternalTextureSource.Dynamic */
+  );
+  texture.baseWidth = width;
+  texture.baseHeight = height;
+  if (generateMipMaps) {
+    width = this.needPOTTextures ? GetExponentOfTwo(width, this._caps.maxTextureSize) : width;
+    height = this.needPOTTextures ? GetExponentOfTwo(height, this._caps.maxTextureSize) : height;
+  }
+  texture.width = width;
+  texture.height = height;
+  texture.isReady = false;
+  texture.generateMipMaps = generateMipMaps;
+  texture.samplingMode = samplingMode;
+  this.updateTextureSamplingMode(samplingMode, texture);
+  this._internalTexturesCache.push(texture);
+  return texture;
+};
+ThinEngine.prototype.updateDynamicTexture = function(texture, source, invertY, premulAlpha = false, format, forceBindTexture = false, allowGPUOptimization = false) {
+  if (!texture) {
+    return;
+  }
+  const gl = this._gl;
+  const target = gl.TEXTURE_2D;
+  const wasPreviouslyBound = this._bindTextureDirectly(target, texture, true, forceBindTexture);
+  this._unpackFlipY(invertY === void 0 ? texture.invertY : invertY);
+  if (premulAlpha) {
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
+  }
+  const textureType = this._getWebGLTextureType(texture.type);
+  const glformat = this._getInternalFormat(format ? format : texture.format);
+  const internalFormat = this._getRGBABufferInternalSizedFormat(texture.type, glformat);
+  gl.texImage2D(target, 0, internalFormat, glformat, textureType, source);
+  if (texture.generateMipMaps) {
+    gl.generateMipmap(target);
+  }
+  if (!wasPreviouslyBound) {
+    this._bindTextureDirectly(target, null);
+  }
+  if (premulAlpha) {
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
+  }
+  if (format) {
+    texture.format = format;
+  }
+  texture._dynamicTextureSource = source;
+  texture._premulAlpha = premulAlpha;
+  texture.invertY = invertY || false;
+  texture.isReady = true;
+};
+
+// ../../../../../../Desktop/Project/Event/Steamified/node_modules/@babylonjs/core/Materials/Textures/dynamicTexture.js
+init_logger();
+init_texture();
+var DynamicTexture = class _DynamicTexture extends Texture {
+  static {
+    __name(this, "DynamicTexture");
+  }
+  /** @internal */
+  constructor(name245, canvasOrSize, sceneOrOptions, generateMipMaps = false, samplingMode = 3, format = 5, invertY) {
+    const isScene2 = !sceneOrOptions || sceneOrOptions._isScene;
+    const scene = isScene2 ? sceneOrOptions : sceneOrOptions?.scene;
+    const noMipmap = isScene2 ? !generateMipMaps : sceneOrOptions;
+    super(null, scene, noMipmap, invertY, samplingMode, void 0, void 0, void 0, void 0, format);
+    this.name = name245;
+    this.wrapU = Texture.CLAMP_ADDRESSMODE;
+    this.wrapV = Texture.CLAMP_ADDRESSMODE;
+    this._generateMipMaps = generateMipMaps;
+    const engine = this._getEngine();
+    if (!engine) {
+      return;
+    }
+    if (canvasOrSize.getContext) {
+      this._canvas = canvasOrSize;
+      this._ownCanvas = false;
+      this._texture = engine.createDynamicTexture(this._canvas.width, this._canvas.height, generateMipMaps, samplingMode);
+    } else {
+      this._canvas = engine.createCanvas(1, 1);
+      this._ownCanvas = true;
+      const optionsAsSize = canvasOrSize;
+      if (optionsAsSize.width || optionsAsSize.width === 0) {
+        this._texture = engine.createDynamicTexture(optionsAsSize.width, optionsAsSize.height, generateMipMaps, samplingMode);
+      } else {
+        this._texture = engine.createDynamicTexture(canvasOrSize, canvasOrSize, generateMipMaps, samplingMode);
+      }
+    }
+    const textureSize = this.getSize();
+    if (this._canvas.width !== textureSize.width) {
+      this._canvas.width = textureSize.width;
+    }
+    if (this._canvas.height !== textureSize.height) {
+      this._canvas.height = textureSize.height;
+    }
+    this._context = this._canvas.getContext("2d");
+  }
+  /**
+   * Get the current class name of the texture useful for serialization or dynamic coding.
+   * @returns "DynamicTexture"
+   */
+  getClassName() {
+    return "DynamicTexture";
+  }
+  /**
+   * Gets the current state of canRescale
+   */
+  get canRescale() {
+    return true;
+  }
+  _recreate(textureSize) {
+    this._canvas.width = textureSize.width;
+    this._canvas.height = textureSize.height;
+    this.releaseInternalTexture();
+    this._texture = this._getEngine().createDynamicTexture(textureSize.width, textureSize.height, this._generateMipMaps, this.samplingMode);
+  }
+  /**
+   * Scales the texture
+   * @param ratio the scale factor to apply to both width and height
+   */
+  scale(ratio) {
+    const textureSize = this.getSize();
+    textureSize.width *= ratio;
+    textureSize.height *= ratio;
+    this._recreate(textureSize);
+  }
+  /**
+   * Resizes the texture
+   * @param width the new width
+   * @param height the new height
+   */
+  scaleTo(width, height) {
+    const textureSize = this.getSize();
+    textureSize.width = width;
+    textureSize.height = height;
+    this._recreate(textureSize);
+  }
+  /**
+   * Gets the context of the canvas used by the texture
+   * @returns the canvas context of the dynamic texture
+   */
+  getContext() {
+    return this._context;
+  }
+  /**
+   * Clears the texture
+   * @param clearColor Defines the clear color to use
+   */
+  clear(clearColor) {
+    const size = this.getSize();
+    if (clearColor) {
+      this._context.fillStyle = clearColor;
+    }
+    this._context.clearRect(0, 0, size.width, size.height);
+  }
+  /**
+   * Updates the texture
+   * @param invertY defines the direction for the Y axis (default is true - y increases downwards)
+   * @param premulAlpha defines if alpha is stored as premultiplied (default is false)
+   * @param allowGPUOptimization true to allow some specific GPU optimizations (subject to engine feature "allowGPUOptimizationsForGUI" being true)
+   */
+  update(invertY, premulAlpha = false, allowGPUOptimization = false) {
+    if (!this._texture) {
+      return;
+    }
+    this._getEngine().updateDynamicTexture(this._texture, this._canvas, invertY === void 0 ? true : invertY, premulAlpha, this._format || void 0, void 0, allowGPUOptimization);
+  }
+  /**
+   * Draws text onto the texture
+   * @param text defines the text to be drawn
+   * @param x defines the placement of the text from the left
+   * @param y defines the placement of the text from the top when invertY is true and from the bottom when false
+   * @param font defines the font to be used with font-style, font-size, font-name
+   * @param color defines the color used for the text
+   * @param fillColor defines the color for the canvas, use null to not overwrite canvas (this blends with the background to replace, use the clear function)
+   * @param invertY defines the direction for the Y axis (default is true - y increases downwards)
+   * @param update defines whether texture is immediately update (default is true)
+   */
+  drawText(text, x, y, font, color, fillColor, invertY, update = true) {
+    const size = this.getSize();
+    if (fillColor) {
+      this._context.fillStyle = fillColor;
+      this._context.fillRect(0, 0, size.width, size.height);
+    }
+    this._context.font = font;
+    if (x === null || x === void 0) {
+      const textSize = this._context.measureText(text);
+      x = (size.width - textSize.width) / 2;
+    }
+    if (y === null || y === void 0) {
+      const fontSize = parseInt(font.replace(/\D/g, ""));
+      y = size.height / 2 + fontSize / 3.65;
+    }
+    this._context.fillStyle = color || "";
+    this._context.fillText(text, x, y);
+    if (update) {
+      this.update(invertY);
+    }
+  }
+  /**
+   * Disposes the dynamic texture.
+   */
+  dispose() {
+    super.dispose();
+    if (this._ownCanvas) {
+      this._canvas?.remove?.();
+    }
+    this._canvas = null;
+    this._context = null;
+  }
+  /**
+   * Clones the texture
+   * @returns the clone of the texture.
+   */
+  clone() {
+    const scene = this.getScene();
+    if (!scene) {
+      return this;
+    }
+    const textureSize = this.getSize();
+    const newTexture = new _DynamicTexture(this.name, textureSize, scene, this._generateMipMaps);
+    newTexture.hasAlpha = this.hasAlpha;
+    newTexture.level = this.level;
+    newTexture.wrapU = this.wrapU;
+    newTexture.wrapV = this.wrapV;
+    return newTexture;
+  }
+  /**
+   * Serializes the dynamic texture.  The scene should be ready before the dynamic texture is serialized
+   * @returns a serialized dynamic texture object
+   */
+  serialize() {
+    const scene = this.getScene();
+    if (scene && !scene.isReady()) {
+      Logger.Warn("The scene must be ready before serializing the dynamic texture");
+    }
+    const serializationObject = super.serialize();
+    if (_DynamicTexture._IsCanvasElement(this._canvas)) {
+      serializationObject.base64String = this._canvas.toDataURL();
+    }
+    serializationObject.invertY = this._invertY;
+    serializationObject.samplingMode = this.samplingMode;
+    return serializationObject;
+  }
+  static _IsCanvasElement(canvas) {
+    return canvas.toDataURL !== void 0;
+  }
+  /** @internal */
+  _rebuild() {
+    this.update();
+  }
+};
+
 // ../../../../../../Desktop/Project/Event/Steamified/node_modules/@babylonjs/core/Engines/constants.js
 var Constants = class {
   static {
@@ -129797,264 +130055,6 @@ var ClipboardInfo = class {
   }
 };
 
-// ../../../../../../Desktop/Project/Event/Steamified/node_modules/@babylonjs/core/Engines/Extensions/engine.dynamicTexture.js
-init_tools_functions();
-init_thinEngine();
-init_internalTexture();
-ThinEngine.prototype.createDynamicTexture = function(width, height, generateMipMaps, samplingMode) {
-  const texture = new InternalTexture(
-    this,
-    4
-    /* InternalTextureSource.Dynamic */
-  );
-  texture.baseWidth = width;
-  texture.baseHeight = height;
-  if (generateMipMaps) {
-    width = this.needPOTTextures ? GetExponentOfTwo(width, this._caps.maxTextureSize) : width;
-    height = this.needPOTTextures ? GetExponentOfTwo(height, this._caps.maxTextureSize) : height;
-  }
-  texture.width = width;
-  texture.height = height;
-  texture.isReady = false;
-  texture.generateMipMaps = generateMipMaps;
-  texture.samplingMode = samplingMode;
-  this.updateTextureSamplingMode(samplingMode, texture);
-  this._internalTexturesCache.push(texture);
-  return texture;
-};
-ThinEngine.prototype.updateDynamicTexture = function(texture, source, invertY, premulAlpha = false, format, forceBindTexture = false, allowGPUOptimization = false) {
-  if (!texture) {
-    return;
-  }
-  const gl = this._gl;
-  const target = gl.TEXTURE_2D;
-  const wasPreviouslyBound = this._bindTextureDirectly(target, texture, true, forceBindTexture);
-  this._unpackFlipY(invertY === void 0 ? texture.invertY : invertY);
-  if (premulAlpha) {
-    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
-  }
-  const textureType = this._getWebGLTextureType(texture.type);
-  const glformat = this._getInternalFormat(format ? format : texture.format);
-  const internalFormat = this._getRGBABufferInternalSizedFormat(texture.type, glformat);
-  gl.texImage2D(target, 0, internalFormat, glformat, textureType, source);
-  if (texture.generateMipMaps) {
-    gl.generateMipmap(target);
-  }
-  if (!wasPreviouslyBound) {
-    this._bindTextureDirectly(target, null);
-  }
-  if (premulAlpha) {
-    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 0);
-  }
-  if (format) {
-    texture.format = format;
-  }
-  texture._dynamicTextureSource = source;
-  texture._premulAlpha = premulAlpha;
-  texture.invertY = invertY || false;
-  texture.isReady = true;
-};
-
-// ../../../../../../Desktop/Project/Event/Steamified/node_modules/@babylonjs/core/Materials/Textures/dynamicTexture.js
-init_logger();
-init_texture();
-var DynamicTexture = class _DynamicTexture extends Texture {
-  static {
-    __name(this, "DynamicTexture");
-  }
-  /** @internal */
-  constructor(name245, canvasOrSize, sceneOrOptions, generateMipMaps = false, samplingMode = 3, format = 5, invertY) {
-    const isScene2 = !sceneOrOptions || sceneOrOptions._isScene;
-    const scene = isScene2 ? sceneOrOptions : sceneOrOptions?.scene;
-    const noMipmap = isScene2 ? !generateMipMaps : sceneOrOptions;
-    super(null, scene, noMipmap, invertY, samplingMode, void 0, void 0, void 0, void 0, format);
-    this.name = name245;
-    this.wrapU = Texture.CLAMP_ADDRESSMODE;
-    this.wrapV = Texture.CLAMP_ADDRESSMODE;
-    this._generateMipMaps = generateMipMaps;
-    const engine = this._getEngine();
-    if (!engine) {
-      return;
-    }
-    if (canvasOrSize.getContext) {
-      this._canvas = canvasOrSize;
-      this._ownCanvas = false;
-      this._texture = engine.createDynamicTexture(this._canvas.width, this._canvas.height, generateMipMaps, samplingMode);
-    } else {
-      this._canvas = engine.createCanvas(1, 1);
-      this._ownCanvas = true;
-      const optionsAsSize = canvasOrSize;
-      if (optionsAsSize.width || optionsAsSize.width === 0) {
-        this._texture = engine.createDynamicTexture(optionsAsSize.width, optionsAsSize.height, generateMipMaps, samplingMode);
-      } else {
-        this._texture = engine.createDynamicTexture(canvasOrSize, canvasOrSize, generateMipMaps, samplingMode);
-      }
-    }
-    const textureSize = this.getSize();
-    if (this._canvas.width !== textureSize.width) {
-      this._canvas.width = textureSize.width;
-    }
-    if (this._canvas.height !== textureSize.height) {
-      this._canvas.height = textureSize.height;
-    }
-    this._context = this._canvas.getContext("2d");
-  }
-  /**
-   * Get the current class name of the texture useful for serialization or dynamic coding.
-   * @returns "DynamicTexture"
-   */
-  getClassName() {
-    return "DynamicTexture";
-  }
-  /**
-   * Gets the current state of canRescale
-   */
-  get canRescale() {
-    return true;
-  }
-  _recreate(textureSize) {
-    this._canvas.width = textureSize.width;
-    this._canvas.height = textureSize.height;
-    this.releaseInternalTexture();
-    this._texture = this._getEngine().createDynamicTexture(textureSize.width, textureSize.height, this._generateMipMaps, this.samplingMode);
-  }
-  /**
-   * Scales the texture
-   * @param ratio the scale factor to apply to both width and height
-   */
-  scale(ratio) {
-    const textureSize = this.getSize();
-    textureSize.width *= ratio;
-    textureSize.height *= ratio;
-    this._recreate(textureSize);
-  }
-  /**
-   * Resizes the texture
-   * @param width the new width
-   * @param height the new height
-   */
-  scaleTo(width, height) {
-    const textureSize = this.getSize();
-    textureSize.width = width;
-    textureSize.height = height;
-    this._recreate(textureSize);
-  }
-  /**
-   * Gets the context of the canvas used by the texture
-   * @returns the canvas context of the dynamic texture
-   */
-  getContext() {
-    return this._context;
-  }
-  /**
-   * Clears the texture
-   * @param clearColor Defines the clear color to use
-   */
-  clear(clearColor) {
-    const size = this.getSize();
-    if (clearColor) {
-      this._context.fillStyle = clearColor;
-    }
-    this._context.clearRect(0, 0, size.width, size.height);
-  }
-  /**
-   * Updates the texture
-   * @param invertY defines the direction for the Y axis (default is true - y increases downwards)
-   * @param premulAlpha defines if alpha is stored as premultiplied (default is false)
-   * @param allowGPUOptimization true to allow some specific GPU optimizations (subject to engine feature "allowGPUOptimizationsForGUI" being true)
-   */
-  update(invertY, premulAlpha = false, allowGPUOptimization = false) {
-    if (!this._texture) {
-      return;
-    }
-    this._getEngine().updateDynamicTexture(this._texture, this._canvas, invertY === void 0 ? true : invertY, premulAlpha, this._format || void 0, void 0, allowGPUOptimization);
-  }
-  /**
-   * Draws text onto the texture
-   * @param text defines the text to be drawn
-   * @param x defines the placement of the text from the left
-   * @param y defines the placement of the text from the top when invertY is true and from the bottom when false
-   * @param font defines the font to be used with font-style, font-size, font-name
-   * @param color defines the color used for the text
-   * @param fillColor defines the color for the canvas, use null to not overwrite canvas (this blends with the background to replace, use the clear function)
-   * @param invertY defines the direction for the Y axis (default is true - y increases downwards)
-   * @param update defines whether texture is immediately update (default is true)
-   */
-  drawText(text, x, y, font, color, fillColor, invertY, update = true) {
-    const size = this.getSize();
-    if (fillColor) {
-      this._context.fillStyle = fillColor;
-      this._context.fillRect(0, 0, size.width, size.height);
-    }
-    this._context.font = font;
-    if (x === null || x === void 0) {
-      const textSize = this._context.measureText(text);
-      x = (size.width - textSize.width) / 2;
-    }
-    if (y === null || y === void 0) {
-      const fontSize = parseInt(font.replace(/\D/g, ""));
-      y = size.height / 2 + fontSize / 3.65;
-    }
-    this._context.fillStyle = color || "";
-    this._context.fillText(text, x, y);
-    if (update) {
-      this.update(invertY);
-    }
-  }
-  /**
-   * Disposes the dynamic texture.
-   */
-  dispose() {
-    super.dispose();
-    if (this._ownCanvas) {
-      this._canvas?.remove?.();
-    }
-    this._canvas = null;
-    this._context = null;
-  }
-  /**
-   * Clones the texture
-   * @returns the clone of the texture.
-   */
-  clone() {
-    const scene = this.getScene();
-    if (!scene) {
-      return this;
-    }
-    const textureSize = this.getSize();
-    const newTexture = new _DynamicTexture(this.name, textureSize, scene, this._generateMipMaps);
-    newTexture.hasAlpha = this.hasAlpha;
-    newTexture.level = this.level;
-    newTexture.wrapU = this.wrapU;
-    newTexture.wrapV = this.wrapV;
-    return newTexture;
-  }
-  /**
-   * Serializes the dynamic texture.  The scene should be ready before the dynamic texture is serialized
-   * @returns a serialized dynamic texture object
-   */
-  serialize() {
-    const scene = this.getScene();
-    if (scene && !scene.isReady()) {
-      Logger.Warn("The scene must be ready before serializing the dynamic texture");
-    }
-    const serializationObject = super.serialize();
-    if (_DynamicTexture._IsCanvasElement(this._canvas)) {
-      serializationObject.base64String = this._canvas.toDataURL();
-    }
-    serializationObject.invertY = this._invertY;
-    serializationObject.samplingMode = this.samplingMode;
-    return serializationObject;
-  }
-  static _IsCanvasElement(canvas) {
-    return canvas.toDataURL !== void 0;
-  }
-  /** @internal */
-  _rebuild() {
-    this.update();
-  }
-};
-
 // ../../../../../../Desktop/Project/Event/Steamified/node_modules/@babylonjs/core/Layers/layerSceneComponent.js
 init_sceneComponent();
 init_engineStore();
@@ -145760,8 +145760,7 @@ var VenturiController = class {
       if (glass) glass.material = glassMat;
       const pipe = scene.getMeshByName(`venturiSeg_${i}`);
       if (pipe) pipe.material = pipeMat;
-      const metalParts = [`joint_${i}`, `fitting_${i}`, `strut_${i}`, `glassCap_${i}`];
-      metalParts.forEach((name245) => {
+      [`joint_${i}`, `fitting_${i}`, `strut_${i}`, `glassCap_${i}`].forEach((name245) => {
         const part = scene.getMeshByName(name245);
         if (part) part.material = metalMat;
       });
@@ -145801,9 +145800,19 @@ var VenturiController = class {
     this.flowParticles.direction2 = new Vector3(1, 0, 0);
     this.flowParticles.gravity = new Vector3(0, 0, 0);
     this.flowParticles.start();
+    const dashboardPlane = MeshBuilder.CreatePlane("dashboardPlane", { width: 14e3, height: 3500 }, scene);
+    dashboardPlane.position.set(0, 8500, 2e3);
+    this.dashboardTexture = new DynamicTexture("dashboardTex", { width: 2048, height: 512 }, scene, true);
+    const dashMat = new StandardMaterial("dashMat", scene);
+    dashMat.diffuseTexture = this.dashboardTexture;
+    dashMat.emissiveColor = new Color3(1, 1, 1);
+    dashMat.alpha = 0.9;
+    dashMat.backFaceCulling = false;
+    dashboardPlane.material = dashMat;
     const activeCamera = scene.activeCamera;
     if (activeCamera instanceof ArcRotateCamera) {
-      activeCamera.target.set(0, 3e3, 0);
+      activeCamera.target.set(0, 4e3, 0);
+      activeCamera.radius = 18e3;
       activeCamera.maxZ = 1e5;
       const camLight = new PointLight("camLight", Vector3.Zero(), scene);
       camLight.parent = activeCamera;
@@ -145829,6 +145838,23 @@ var VenturiController = class {
       const baseSpeed = this.flowRateQ * 15e3;
       this.flowParticles.minEmitPower = baseSpeed;
       this.flowParticles.maxEmitPower = baseSpeed * 1.5;
+      if (this.dashboardTexture) {
+        const ctx = this.dashboardTexture.getContext();
+        ctx.fillStyle = "#0d1117";
+        ctx.fillRect(0, 0, 2048, 512);
+        ctx.fillStyle = "#00e6ff";
+        ctx.font = "bold 80px Courier New";
+        ctx.textAlign = "center";
+        ctx.fillText("VENTURI METER TELEMETRY", 1024, 120);
+        const throatV = this.flowRateQ / this.areas[5];
+        const throatP = Math.max(1.6, this.totalHeadH - Math.pow(throatV, 2) / (2 * this.g));
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "60px Courier New";
+        ctx.fillText(`SYSTEM Q: ${this.flowRateQ.toFixed(3)} m\xB3/s  |  THROAT VELOCITY: ${throatV.toFixed(2)} m/s`, 1024, 280);
+        ctx.fillStyle = "#ff4444";
+        ctx.fillText(`THROAT PRESSURE HEAD: ${throatP.toFixed(2)} m`, 1024, 400);
+        this.dashboardTexture.update();
+      }
     }
     if (this.runStopwatch === 1 && this.collectingWater) {
       this.collectedVolume += this.flowRateQ * deltaTime * 100;

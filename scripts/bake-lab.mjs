@@ -41,7 +41,7 @@ for (let i = 0; i < 11; i++) {
     const fitting = MeshBuilder.CreateCylinder(`fitting_${i}`, { height: fittingHeight, diameter: 0.25 * S * T, tessellation: 32 }, scene);
     fitting.position.set(posX, pipeSurfaceY + (fittingHeight / 2), 0);
 
-    // 4. Flawless Glass Tubes (Massively increased height to 8000 so the water doesn't overflow)
+    // 4. Flawless Glass Tubes 
     const glassHeight = 8000;
     const glass = MeshBuilder.CreateCylinder(`glassTube_${i}`, { height: glassHeight, diameter: 0.15 * S * T, tessellation: 32 }, scene);
     glass.position.set(posX, glassHeight / 2, 0); 
@@ -54,31 +54,31 @@ for (let i = 0; i < 11; i++) {
     const water = MeshBuilder.CreateCylinder(`waterCol_${i}`, { height: 1.0, diameter: 0.13 * S * T, tessellation: 32 }, scene);
     water.position.set(posX, 0, 0);
 
-    // 7. Support Struts (Anchored perfectly to the table)
+    // 7. Support Struts
     if (i % 2 === 0) {
-        const strutHeight = Math.abs(tableTopY); // 1500
+        const strutHeight = Math.abs(tableTopY); 
         const strut = MeshBuilder.CreateCylinder(`strut_${i}`, { height: strutHeight, diameter: 0.1 * S * T, tessellation: 16 }, scene);
         strut.position.set(posX, tableTopY + (strutHeight / 2), 0); 
     }
 }
 
-// 8. Supply Tank (Anchored perfectly)
+// 8. Supply Tank
 const supplyHeight = 8000;
 const supplyTank = MeshBuilder.CreateCylinder("supplyTank", { height: supplyHeight, diameter: 4 * S * T, tessellation: 64 }, scene);
 supplyTank.position.set(-6 * step, tableTopY + (supplyHeight / 2), 0); 
 
-// 9. Collecting Tank (Anchored perfectly)
-// 8. Collecting Tank (Right)
-const collectingTank = MeshBuilder.CreateBox("collectingTank", { width: 3 * S * T, height: 4.5 * S, depth: 3 * S * T }, scene);
-collectingTank.position.set(6 * step, 0.25 * S, 0);
+// 9. Collecting Tank (BUG FIX: Perfectly anchored to table now)
+const collectHeight = 4000;
+const collectingTank = MeshBuilder.CreateBox("collectingTank", { width: 3 * S * T, height: collectHeight, depth: 3 * S * T }, scene);
+collectingTank.position.set(6 * step, tableTopY + (collectHeight / 2), 0); 
 
-// NEW: Water inside the collecting tank for the stopwatch feature!
+// 10. Collecting Water (BUG FIX: Perfectly anchored to table now)
 const collectingWater = MeshBuilder.CreateBox("collectingWater", { width: 2.8 * S * T, height: 1.0, depth: 2.8 * S * T }, scene);
-collectingWater.position.set(6 * step, -1.0 * S, 0); // Anchored to the bottom of the tank
+collectingWater.position.set(6 * step, tableTopY, 0);
 
-// 9. Main Base Plate (Table)
-const basePlate = MeshBuilder.CreateBox("basePlate", { width: 15 * step, height: 0.2 * S, depth: 4 * S * T }, scene);
-basePlate.position.set(0, -2.6 * S, 0);
+// 11. Base Plate (Table)
+const basePlate = MeshBuilder.CreateBox("basePlate", { width: 15 * step, height: 200, depth: 4 * S * T }, scene);
+basePlate.position.set(0, tableTopY - 100, 0);
 
 const serialized = SceneSerializer.Serialize(scene);
 mkdirSync("assets/example.scene/meshes", { recursive: true });

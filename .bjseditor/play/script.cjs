@@ -2161,38 +2161,12 @@ var import_babylonjs66 = require("babylonjs");
 // ../../../../../../Desktop/Project/Event/Steamified/node_modules/babylonjs-editor-tools/build/src/loading/database/database.js
 var import_babylonjs69 = require("babylonjs");
 
-// ../../../../../../Desktop/Project/Event/Steamified/src/scripts/box.ts
-var box_exports = {};
-__export(box_exports, {
-  default: () => SceneComponent
-});
-var import_babylonjs70 = require("babylonjs");
-var SceneComponent = class {
-  constructor(mesh) {
-    this.mesh = mesh;
-    this._speed = 0.04;
-  }
-  static {
-    __name(this, "SceneComponent");
-  }
-  onStart() {
-  }
-  onUpdate() {
-    this.mesh.rotate(import_babylonjs70.Vector3.UpReadOnly, this._speed * this.mesh.getScene().getAnimationRatio());
-  }
-};
-__decorateClass([
-  visibleAsNumber("Speed", {
-    min: 0,
-    max: 0.1
-  })
-], SceneComponent.prototype, "_speed", 2);
-
 // ../../../../../../Desktop/Project/Event/Steamified/src/scripts/venturiController.ts
 var venturiController_exports = {};
 __export(venturiController_exports, {
   default: () => VenturiController
 });
+var import_babylonjs70 = require("babylonjs");
 var import_babylonjs71 = require("babylonjs");
 var import_babylonjs72 = require("babylonjs");
 var import_babylonjs73 = require("babylonjs");
@@ -2223,45 +2197,45 @@ var VenturiController = class {
   onStart() {
     const scene = this.mesh.getScene();
     if (scene.lights.length === 0) {
-      const hemiLight = new import_babylonjs75.HemisphericLight("hemiLight", new import_babylonjs74.Vector3(0, 1, 0), scene);
-      hemiLight.intensity = 0.85;
-      hemiLight.groundColor = new import_babylonjs73.Color3(0.3, 0.3, 0.3);
-      hemiLight.specular = new import_babylonjs73.Color3(0, 0, 0);
-      const dirLight = new import_babylonjs76.DirectionalLight("dirLight", new import_babylonjs74.Vector3(-0.5, -1, -0.5), scene);
-      dirLight.intensity = 0.5;
-      dirLight.specular = new import_babylonjs73.Color3(0, 0, 0);
+      const hemiLight = new import_babylonjs74.HemisphericLight("hemiLight", new import_babylonjs73.Vector3(0, 1, 0), scene);
+      hemiLight.intensity = 0.5;
+      hemiLight.groundColor = new import_babylonjs72.Color3(0.1, 0.1, 0.1);
+      hemiLight.specular = new import_babylonjs72.Color3(0, 0, 0);
+      const dirLight = new import_babylonjs75.DirectionalLight("dirLight", new import_babylonjs73.Vector3(-0.5, -1, -0.5), scene);
+      dirLight.intensity = 0.4;
+      dirLight.specular = new import_babylonjs72.Color3(0, 0, 0);
     }
-    scene.ambientColor = new import_babylonjs73.Color3(0.5, 0.5, 0.55);
-    const pipeline = new import_babylonjs78.DefaultRenderingPipeline("defaultPipeline", true, scene, scene.cameras);
+    scene.ambientColor = new import_babylonjs72.Color3(0.2, 0.2, 0.22);
+    const pipeline = new import_babylonjs77.DefaultRenderingPipeline("defaultPipeline", true, scene, scene.cameras);
     pipeline.samples = 4;
     pipeline.bloomEnabled = true;
-    pipeline.bloomThreshold = 0.9;
-    pipeline.bloomWeight = 0.2;
-    const fluidMat = new import_babylonjs72.StandardMaterial("fluidMat", scene);
-    fluidMat.diffuseColor = new import_babylonjs73.Color3(0, 0.4, 1);
-    fluidMat.emissiveColor = new import_babylonjs73.Color3(0.1, 0.5, 1.5);
+    pipeline.bloomThreshold = 0.8;
+    pipeline.bloomWeight = 0.35;
+    const fluidMat = new import_babylonjs71.StandardMaterial("fluidMat", scene);
+    fluidMat.diffuseColor = new import_babylonjs72.Color3(0, 0.4, 1);
+    fluidMat.emissiveColor = new import_babylonjs72.Color3(0.1, 0.5, 1.5);
     fluidMat.alpha = 0.99;
-    const glassMat = new import_babylonjs72.StandardMaterial("glassMat", scene);
-    glassMat.diffuseColor = new import_babylonjs73.Color3(0.4, 0.7, 0.9);
+    const glassMat = new import_babylonjs71.StandardMaterial("glassMat", scene);
+    glassMat.diffuseColor = new import_babylonjs72.Color3(0.3, 0.5, 0.7);
     glassMat.alpha = 0.1;
-    glassMat.specularColor = new import_babylonjs73.Color3(0, 0, 0);
+    glassMat.specularColor = new import_babylonjs72.Color3(0.1, 0.1, 0.1);
     glassMat.needDepthPrePass = true;
     glassMat.backFaceCulling = true;
-    const pipeMat = new import_babylonjs72.StandardMaterial("pipeMat", scene);
-    pipeMat.diffuseColor = new import_babylonjs73.Color3(0.3, 0.8, 1);
+    const pipeMat = new import_babylonjs71.StandardMaterial("pipeMat", scene);
+    pipeMat.diffuseColor = new import_babylonjs72.Color3(0.2, 0.4, 0.6);
     pipeMat.alpha = 0.05;
-    pipeMat.specularColor = new import_babylonjs73.Color3(0, 0, 0);
+    pipeMat.specularColor = new import_babylonjs72.Color3(0, 0, 0);
     pipeMat.backFaceCulling = true;
-    const tankGlassMat = new import_babylonjs72.StandardMaterial("tankGlassMat", scene);
-    tankGlassMat.diffuseColor = new import_babylonjs73.Color3(0.4, 0.7, 0.9);
+    const tankGlassMat = new import_babylonjs71.StandardMaterial("tankGlassMat", scene);
+    tankGlassMat.diffuseColor = new import_babylonjs72.Color3(0.3, 0.5, 0.7);
     tankGlassMat.alpha = 0.15;
-    tankGlassMat.specularColor = new import_babylonjs73.Color3(0.1, 0.1, 0.1);
+    tankGlassMat.specularColor = new import_babylonjs72.Color3(0.1, 0.1, 0.1);
     tankGlassMat.needDepthPrePass = true;
     tankGlassMat.backFaceCulling = false;
-    const metalMat = new import_babylonjs72.StandardMaterial("metalMat", scene);
-    metalMat.diffuseColor = new import_babylonjs73.Color3(0.6, 0.6, 0.65);
-    metalMat.specularColor = new import_babylonjs73.Color3(0, 0, 0);
-    metalMat.ambientColor = new import_babylonjs73.Color3(1, 1, 1);
+    const metalMat = new import_babylonjs71.StandardMaterial("metalMat", scene);
+    metalMat.diffuseColor = new import_babylonjs72.Color3(0.18, 0.18, 0.2);
+    metalMat.specularColor = new import_babylonjs72.Color3(0.1, 0.1, 0.1);
+    metalMat.ambientColor = new import_babylonjs72.Color3(0.2, 0.2, 0.2);
     for (let i = 0; i < 11; i++) {
       const water = scene.getMeshByName(`waterCol_${i}`);
       if (water) {
@@ -2272,8 +2246,7 @@ var VenturiController = class {
       if (glass) glass.material = glassMat;
       const pipe = scene.getMeshByName(`venturiSeg_${i}`);
       if (pipe) pipe.material = pipeMat;
-      const metalParts = [`joint_${i}`, `fitting_${i}`, `strut_${i}`, `glassCap_${i}`];
-      metalParts.forEach((name) => {
+      [`joint_${i}`, `fitting_${i}`, `strut_${i}`, `glassCap_${i}`].forEach((name) => {
         const part = scene.getMeshByName(name);
         if (part) part.material = metalMat;
       });
@@ -2291,35 +2264,46 @@ var VenturiController = class {
       this.collectingWater.material = fluidMat;
       this.collectingWater.scaling.y = 0.01;
     }
-    const eglMat = new import_babylonjs72.StandardMaterial("eglMat", scene);
-    eglMat.emissiveColor = new import_babylonjs73.Color3(1, 0.2, 0.2);
-    this.eglLine = import_babylonjs71.MeshBuilder.CreateCylinder("eglLine", { height: 15 * this.stepSize, diameter: 50 }, scene);
+    const eglMat = new import_babylonjs71.StandardMaterial("eglMat", scene);
+    eglMat.emissiveColor = new import_babylonjs72.Color3(1, 0.2, 0.2);
+    this.eglLine = import_babylonjs70.MeshBuilder.CreateCylinder("eglLine", { height: 15 * this.stepSize, diameter: 50 }, scene);
     this.eglLine.rotation.z = Math.PI / 2;
     this.eglLine.material = eglMat;
-    this.flowParticles = new import_babylonjs80.ParticleSystem("particles", 2e3, scene);
-    this.flowParticles.particleTexture = new import_babylonjs81.Texture("https://assets.babylonjs.com/textures/flare.png", scene);
-    this.flowParticles.emitter = new import_babylonjs74.Vector3(-5 * this.stepSize, 0, 0);
-    this.flowParticles.minEmitBox = new import_babylonjs74.Vector3(0, -300, -300);
-    this.flowParticles.maxEmitBox = new import_babylonjs74.Vector3(0, 300, 300);
-    this.flowParticles.color1 = new import_babylonjs73.Color4(0, 0.8, 1, 1);
-    this.flowParticles.color2 = new import_babylonjs73.Color4(0.5, 0.9, 1, 1);
-    this.flowParticles.colorDead = new import_babylonjs73.Color4(0, 0, 0.5, 0);
+    this.flowParticles = new import_babylonjs79.ParticleSystem("particles", 2e3, scene);
+    this.flowParticles.particleTexture = new import_babylonjs80.Texture("https://assets.babylonjs.com/textures/flare.png", scene);
+    this.flowParticles.emitter = new import_babylonjs73.Vector3(-5 * this.stepSize, 0, 0);
+    this.flowParticles.minEmitBox = new import_babylonjs73.Vector3(0, -300, -300);
+    this.flowParticles.maxEmitBox = new import_babylonjs73.Vector3(0, 300, 300);
+    this.flowParticles.color1 = new import_babylonjs72.Color4(0, 0.8, 1, 1);
+    this.flowParticles.color2 = new import_babylonjs72.Color4(0.5, 0.9, 1, 1);
+    this.flowParticles.colorDead = new import_babylonjs72.Color4(0, 0, 0.5, 0);
     this.flowParticles.minSize = 350;
     this.flowParticles.maxSize = 650;
-    this.flowParticles.minLifeTime = 1;
-    this.flowParticles.maxLifeTime = 2;
-    this.flowParticles.emitRate = 1500;
-    this.flowParticles.direction1 = new import_babylonjs74.Vector3(1, 0, 0);
-    this.flowParticles.direction2 = new import_babylonjs74.Vector3(1, 0, 0);
-    this.flowParticles.gravity = new import_babylonjs74.Vector3(0, 0, 0);
+    this.flowParticles.minLifeTime = 2;
+    this.flowParticles.maxLifeTime = 3.5;
+    this.flowParticles.emitRate = 1200;
+    this.flowParticles.direction1 = new import_babylonjs73.Vector3(1, 0, 0);
+    this.flowParticles.direction2 = new import_babylonjs73.Vector3(1, 0, 0);
+    this.flowParticles.gravity = new import_babylonjs73.Vector3(0, 0, 0);
     this.flowParticles.start();
+    const dashboardPlane = import_babylonjs70.MeshBuilder.CreatePlane("dashboardPlane", { width: 14e3, height: 3500 }, scene);
+    dashboardPlane.position.set(0, 8500, 2e3);
+    this.dashboardTexture = new import_babylonjs81.DynamicTexture("dashboardTex", { width: 2048, height: 512 }, scene, true);
+    const dashMat = new import_babylonjs71.StandardMaterial("dashMat", scene);
+    dashMat.diffuseTexture = this.dashboardTexture;
+    dashMat.emissiveColor = new import_babylonjs72.Color3(1, 1, 1);
+    dashMat.alpha = 0.9;
+    dashMat.backFaceCulling = false;
+    dashboardPlane.material = dashMat;
     const activeCamera = scene.activeCamera;
-    if (activeCamera instanceof import_babylonjs79.ArcRotateCamera) {
-      activeCamera.target.set(0, 3e3, 0);
-      const camLight = new import_babylonjs77.PointLight("camLight", import_babylonjs74.Vector3.Zero(), scene);
+    if (activeCamera instanceof import_babylonjs78.ArcRotateCamera) {
+      activeCamera.target.set(0, 4e3, 0);
+      activeCamera.radius = 18e3;
+      activeCamera.maxZ = 1e5;
+      const camLight = new import_babylonjs76.PointLight("camLight", import_babylonjs73.Vector3.Zero(), scene);
       camLight.parent = activeCamera;
-      camLight.intensity = 0.5;
-      camLight.specular = new import_babylonjs73.Color3(0, 0, 0);
+      camLight.intensity = 0.35;
+      camLight.specular = new import_babylonjs72.Color3(0, 0, 0);
     }
   }
   onUpdate() {
@@ -2333,7 +2317,6 @@ var VenturiController = class {
         const waterMesh = this.waterColumns[i];
         waterMesh.scaling.y += (targetVisualHeight - waterMesh.scaling.y) * 0.08 * deltaTime;
         waterMesh.position.y = waterMesh.scaling.y / 2 + 10;
-        waterMesh.renderingGroupId = 1;
       }
       const exitV = this.flowRateQ / this.areas[this.areas.length - 1];
       const exitVelocityHead = Math.pow(exitV, 2) / (2 * this.g);
@@ -2341,15 +2324,32 @@ var VenturiController = class {
       const baseSpeed = this.flowRateQ * 15e3;
       this.flowParticles.minEmitPower = baseSpeed;
       this.flowParticles.maxEmitPower = baseSpeed * 1.5;
+      if (this.dashboardTexture) {
+        const ctx = this.dashboardTexture.getContext();
+        ctx.fillStyle = "#0d1117";
+        ctx.fillRect(0, 0, 2048, 512);
+        ctx.fillStyle = "#00e6ff";
+        ctx.font = "bold 80px Courier New";
+        ctx.textAlign = "center";
+        ctx.fillText("VENTURI METER TELEMETRY", 1024, 120);
+        const throatV = this.flowRateQ / this.areas[5];
+        const throatP = Math.max(1.6, this.totalHeadH - Math.pow(throatV, 2) / (2 * this.g));
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "60px Courier New";
+        ctx.fillText(`SYSTEM Q: ${this.flowRateQ.toFixed(3)} m\xB3/s  |  THROAT VELOCITY: ${throatV.toFixed(2)} m/s`, 1024, 280);
+        ctx.fillStyle = "#ff4444";
+        ctx.fillText(`THROAT PRESSURE HEAD: ${throatP.toFixed(2)} m`, 1024, 400);
+        this.dashboardTexture.update();
+      }
     }
     if (this.runStopwatch === 1 && this.collectingWater) {
       this.collectedVolume += this.flowRateQ * deltaTime * 100;
       const targetHeight = Math.min(3800, this.collectedVolume);
       this.collectingWater.scaling.y += (targetHeight - this.collectingWater.scaling.y) * 0.1 * deltaTime;
       this.collectingWater.position.y = -1500 + this.collectingWater.scaling.y / 2;
-    } else if (this.runStopwatch === 0) {
+    } else if (this.runStopwatch === 0 && this.collectingWater) {
       this.collectedVolume = 0;
-      this.collectingWater.scaling.y *= 0.95;
+      this.collectingWater.scaling.y += (0.01 - this.collectingWater.scaling.y) * 0.1 * deltaTime;
       this.collectingWater.position.y = -1500 + this.collectingWater.scaling.y / 2;
     }
   }
@@ -2361,10 +2361,37 @@ __decorateClass([
   visibleAsNumber("Run Stopwatch (0=Off, 1=On)", { min: 0, max: 1, step: 1 })
 ], VenturiController.prototype, "runStopwatch", 2);
 
+// ../../../../../../Desktop/Project/Event/Steamified/src/scripts/box.ts
+var box_exports = {};
+__export(box_exports, {
+  default: () => SceneComponent
+});
+var import_babylonjs82 = require("babylonjs");
+var SceneComponent = class {
+  constructor(mesh) {
+    this.mesh = mesh;
+    this._speed = 0.04;
+  }
+  static {
+    __name(this, "SceneComponent");
+  }
+  onStart() {
+  }
+  onUpdate() {
+    this.mesh.rotate(import_babylonjs82.Vector3.UpReadOnly, this._speed * this.mesh.getScene().getAnimationRatio());
+  }
+};
+__decorateClass([
+  visibleAsNumber("Speed", {
+    min: 0,
+    max: 0.1
+  })
+], SceneComponent.prototype, "_speed", 2);
+
 // ../../../../../../Desktop/Project/Event/Steamified/src/scripts.ts
 var scriptsMap = {
-  "scripts/box.ts": box_exports,
-  "scripts/venturiController.ts": venturiController_exports
+  "scripts/venturiController.ts": venturiController_exports,
+  "scripts/box.ts": box_exports
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
