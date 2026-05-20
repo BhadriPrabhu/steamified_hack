@@ -2324,14 +2324,95 @@ var VenturiController = class {
     dashboardPlane.material = dashMat;
     const activeCamera = scene.activeCamera;
     if (activeCamera instanceof import_babylonjs79.ArcRotateCamera) {
-      activeCamera.target.set(0, 5e3, 0);
+      activeCamera.target.set(0, 4e3, 0);
       activeCamera.radius = 18e3;
       activeCamera.maxZ = 1e5;
       const camLight = new import_babylonjs77.PointLight("camLight", import_babylonjs74.Vector3.Zero(), scene);
       camLight.parent = activeCamera;
       camLight.intensity = 0.35;
       camLight.specular = new import_babylonjs73.Color3(0, 0, 0);
+      activeCamera.useAutoRotationBehavior = true;
+      if (activeCamera.autoRotationBehavior) {
+        activeCamera.autoRotationBehavior.idleRotationSpeed = -0.05;
+      }
     }
+    const existingUI = document.getElementById("hackathon-ui");
+    if (existingUI) existingUI.remove();
+    const ui = document.createElement("div");
+    ui.id = "hackathon-ui";
+    ui.style.position = "absolute";
+    ui.style.top = "30px";
+    ui.style.left = "calc(50vw - 190px)";
+    ui.style.width = "380px";
+    ui.style.backgroundColor = "rgba(13, 17, 23, 0.85)";
+    ui.style.border = "1px solid #00e6ff";
+    ui.style.borderRadius = "8px";
+    ui.style.color = "#ffffff";
+    ui.style.fontFamily = "'Courier New', Courier, monospace";
+    ui.style.backdropFilter = "blur(12px)";
+    ui.style.zIndex = "9999";
+    ui.style.boxShadow = "0px 0px 30px rgba(0, 230, 255, 0.15)";
+    ui.style.pointerEvents = "auto";
+    ui.innerHTML = `
+            <div id="ui-header" style="cursor: grab; padding: 15px 20px; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); border-radius: 8px 8px 0 0;">
+                <h2 style="color: #00e6ff; margin: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 2px;">Team Defy_404</h2>
+                <button id="ui-minimize" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; outline: none;">\u2796</button>
+            </div>
+            <div id="ui-content" style="padding: 20px;">
+                <h4 style="color: #ff4444; margin: 0 0 15px 0; font-size: 14px; font-weight: normal; letter-spacing: 1px;">Verification of Bernoulli's equation - Venturi Simulation</h4>
+                <p style="font-size: 13px; line-height: 1.6; color: #c9d1d9; margin-bottom: 15px;">
+                    <strong>Thesis:</strong> Proving Bernoulli's Principle through real-time computational fluid mechanics and volumetric discharge measurement.
+                </p>
+                <div style="font-size: 12px; color: #8b949e; line-height: 1.8;">
+                    <div style="margin-bottom: 8px;"><span style="color: #00e6ff; font-weight: bold;">[ 1 ]</span> <b style="color: #fff;">FLOW RATE (Q):</b> Adjust in inspector.</div>
+                    <div style="margin-bottom: 8px;"><span style="color: #00e6ff; font-weight: bold;">[ 2 ]</span> <b style="color: #fff;">STOPWATCH:</b> Toggle for volumetric discharge.</div>
+                    <div><span style="color: #00e6ff; font-weight: bold;">[ 3 ]</span> <b style="color: #ff4444;">EGL LINE:</b> Tracks Total Energy.</div>
+                </div>
+            </div>
+        `;
+    const canvas = scene.getEngine().getRenderingCanvas();
+    if (canvas && canvas.parentElement) {
+      canvas.parentElement.style.position = "relative";
+      canvas.parentElement.appendChild(ui);
+    } else {
+      document.body.appendChild(ui);
+    }
+    const header = document.getElementById("ui-header");
+    let isDragging = false;
+    let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
+    header.addEventListener("pointerdown", (e) => {
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      initialLeft = ui.offsetLeft;
+      initialTop = ui.offsetTop;
+      ui.style.left = `${initialLeft}px`;
+      ui.style.top = `${initialTop}px`;
+      header.style.cursor = "grabbing";
+      e.preventDefault();
+    });
+    window.addEventListener("pointermove", (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      ui.style.left = `${initialLeft + dx}px`;
+      ui.style.top = `${initialTop + dy}px`;
+    });
+    window.addEventListener("pointerup", () => {
+      isDragging = false;
+      if (header) header.style.cursor = "grab";
+    });
+    const minBtn = document.getElementById("ui-minimize");
+    const content = document.getElementById("ui-content");
+    minBtn.onclick = () => {
+      if (content.style.display === "none") {
+        content.style.display = "block";
+        minBtn.innerText = "\u2796";
+      } else {
+        content.style.display = "none";
+        minBtn.innerText = "\u2795";
+      }
+    };
   }
   onUpdate() {
     const deltaTime = this.mesh.getScene().getAnimationRatio();

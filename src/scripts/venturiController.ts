@@ -173,7 +173,7 @@ export default class VenturiController implements IScript {
         // --- 8. PERFECT CAMERA FRAMING ---
         const activeCamera = scene.activeCamera as ArcRotateCamera;
         if (activeCamera instanceof ArcRotateCamera) {
-            activeCamera.target.set(0, 5000, 0); 
+            activeCamera.target.set(0, 4000, 0); 
             activeCamera.radius = 18000; 
             activeCamera.maxZ = 100000;
             
@@ -181,7 +181,110 @@ export default class VenturiController implements IScript {
             camLight.parent = activeCamera;
             camLight.intensity = 0.35;
             camLight.specular = new Color3(0, 0, 0);
+
+            // BONUS: Cinematic Auto-Rotate!
+            activeCamera.useAutoRotationBehavior = true;
+            if (activeCamera.autoRotationBehavior) {
+                activeCamera.autoRotationBehavior.idleRotationSpeed = -0.05; // Slow, elegant spin
+            }
         }
+
+        // --- 9. INTERACTIVE DRAGGABLE HTML OVERLAY (FIXED POSITIONING) ---
+        const existingUI = document.getElementById("hackathon-ui");
+        if (existingUI) existingUI.remove(); 
+
+        const ui = document.createElement("div");
+        ui.id = "hackathon-ui";
+        ui.style.position = "absolute";
+        
+        // CRITICAL FIX: Spawn the UI perfectly in the top-center of the screen!
+        // This avoids overlapping both the Left (Graph) and Right (Inspector) panels.
+        ui.style.top = "30px";
+        ui.style.left = "calc(50vw - 190px)"; // 50% of viewport width minus half the UI width (380/2)
+        
+        ui.style.width = "380px";
+        ui.style.backgroundColor = "rgba(13, 17, 23, 0.85)"; 
+        ui.style.border = "1px solid #00e6ff";
+        ui.style.borderRadius = "8px";
+        ui.style.color = "#ffffff";
+        ui.style.fontFamily = "'Courier New', Courier, monospace";
+        ui.style.backdropFilter = "blur(12px)"; 
+        ui.style.zIndex = "9999";
+        ui.style.boxShadow = "0px 0px 30px rgba(0, 230, 255, 0.15)";
+        ui.style.pointerEvents = "auto"; // Allows dragging and clicking
+
+        ui.innerHTML = `
+            <div id="ui-header" style="cursor: grab; padding: 15px 20px; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); border-radius: 8px 8px 0 0;">
+                <h2 style="color: #00e6ff; margin: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 2px;">Team Defy_404</h2>
+                <button id="ui-minimize" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; outline: none;">➖</button>
+            </div>
+            <div id="ui-content" style="padding: 20px;">
+                <h4 style="color: #ff4444; margin: 0 0 15px 0; font-size: 14px; font-weight: normal; letter-spacing: 1px;">Verification of Bernoulli's equation - Venturi Simulation</h4>
+                <p style="font-size: 13px; line-height: 1.6; color: #c9d1d9; margin-bottom: 15px;">
+                    <strong>Thesis:</strong> Proving Bernoulli's Principle through real-time computational fluid mechanics and volumetric discharge measurement.
+                </p>
+                <div style="font-size: 12px; color: #8b949e; line-height: 1.8;">
+                    <div style="margin-bottom: 8px;"><span style="color: #00e6ff; font-weight: bold;">[ 1 ]</span> <b style="color: #fff;">FLOW RATE (Q):</b> Adjust in inspector.</div>
+                    <div style="margin-bottom: 8px;"><span style="color: #00e6ff; font-weight: bold;">[ 2 ]</span> <b style="color: #fff;">STOPWATCH:</b> Toggle for volumetric discharge.</div>
+                    <div><span style="color: #00e6ff; font-weight: bold;">[ 3 ]</span> <b style="color: #ff4444;">EGL LINE:</b> Tracks Total Energy.</div>
+                </div>
+            </div>
+        `;
+
+        const canvas = scene.getEngine().getRenderingCanvas();
+        if (canvas && canvas.parentElement) {
+            canvas.parentElement.style.position = "relative"; 
+            canvas.parentElement.appendChild(ui);
+        } else {
+            document.body.appendChild(ui); 
+        }
+
+        // --- UI DRAG LOGIC (BULLETPROOF FIX) ---
+        const header = document.getElementById("ui-header");
+        let isDragging = false;
+        let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
+
+        // Using pointerdown instead of mousedown stops the editor from hijacking the event
+        header!.addEventListener("pointerdown", (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            // Capture exact pixel position to override the 'calc()' CSS math
+            initialLeft = ui.offsetLeft;
+            initialTop = ui.offsetTop;
+            ui.style.left = `${initialLeft}px`;
+            ui.style.top = `${initialTop}px`;
+            
+            header!.style.cursor = "grabbing";
+            e.preventDefault(); // Prevents the editor window from stealing the drag!
+        });
+
+        window.addEventListener("pointermove", (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            ui.style.left = `${initialLeft + dx}px`;
+            ui.style.top = `${initialTop + dy}px`;
+        });
+
+        window.addEventListener("pointerup", () => {
+            isDragging = false;
+            if (header) header.style.cursor = "grab";
+        });
+
+        // --- UI MINIMIZE LOGIC ---
+        const minBtn = document.getElementById("ui-minimize");
+        const content = document.getElementById("ui-content");
+        minBtn!.onclick = () => {
+            if (content!.style.display === "none") {
+                content!.style.display = "block";
+                minBtn!.innerText = "➖";
+            } else {
+                content!.style.display = "none";
+                minBtn!.innerText = "➕";
+            }
+        };
     }
 
     public onUpdate(): void {
@@ -270,8 +373,6 @@ export default class VenturiController implements IScript {
                 this.dashboardTexture.update();
             }
         }
-
-        // 2. Volumetric Discharge Measurement (Filling the Tank)
 
         // 2. Volumetric Discharge Measurement 
         if (this.runStopwatch === 1 && this.collectingWater) {
