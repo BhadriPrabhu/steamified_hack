@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Steamified-Hack
 
-## Getting Started
+A Babylon.js-powered Next.js event and scene application built with a lightweight editor runtime and custom scene assets.
 
-First, run the development server:
+## Overview
+
+`Steamified-Hack` is a React/Next.js project using Babylon.js (`@babylonjs/core`, `@babylonjs/gui`, `@babylonjs/materials`, `@babylonjs/addons`, and `@babylonjs/havok`) to render interactive 3D content in the browser.
+
+The app loads a dynamic `SimulationWorkspace` component client-side, and the project includes scene data and assets under `assets/` and `public/scene/` for fast preview and export.
+
+## Key Features
+
+- `Next.js` app with client-side Babylon.js rendering
+- Babylon.js 8.x ecosystem support
+- Custom scene/assets structure for event authoring
+- Static export capable via `next.config.js` (`output: "export"`)
+- Build compression and editor baking scripts included
+
+## Project Structure
+
+- `src/app/page.tsx` — main app page that dynamically loads the Babylon render workspace
+- `src/app/layout.tsx` — root app layout and global font styles
+- `src/scripts/venturiController.ts` — custom simulation or scene control logic
+- `assets/` — scene assets, Babylon editor data, meshes, materials, cameras, lights, and more
+- `public/scene/` — exported static scene content for deployment
+- `scripts/` — build helper scripts:
+  - `bake-lab.mjs`
+  - `compress-for-s3.js`
+
+## Installation
+
+```bash
+npm install
+```
+
+## Development
+
+Run the development server locally:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 in your browser or This project can be run using CreatorEngine(Mostly Browser don't allow to run and the browser will crash, So using CreatorEngine will be better choice for running locally).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+- `npm run dev` — start the Next.js development server
+- `npm run build` — build the application for production
+- `npm run build:compress` — build and run S3 compression helper
+- `npm run generate` — generate a Babylon editor pack with `babylonjs-editor-cli`
+- `npm run start` — run the production server after build
+- `npm run lint` — run ESLint checks
+- `npm run bake:editor` — execute editor baking script
 
-## Learn More
+## Dependencies
 
-To learn more about Next.js, take a look at the following resources:
+- `next` 16
+- `react` 18
+- `react-dom` 18
+- `@babylonjs/core` 8
+- `@babylonjs/gui` 8
+- `@babylonjs/materials` 8
+- `@babylonjs/addons` 8
+- `@babylonjs/havok`
+- `babylonjs-editor-tools`
+- `@iwsdk/core`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- The main Babylon rendering happens client-side to avoid server-side rendering issues.
+- Use the `assets/` and `public/scene/` directories to add or update scene files and exported content.
+- If you want to extend the event experience, add more scene logic under `src/scripts/` and connect it to the `SimulationWorkspace` component.
