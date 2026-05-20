@@ -34,6 +34,7 @@ npm install
 ```
 
 ## Development
+`This project can also be run using CreatorEngine(Mostly Browser don't allow to run and the browser will crash, So using CreatorEngine will be better choice for running locally)`
 
 Run the development server locally:
 
@@ -41,7 +42,7 @@ Run the development server locally:
 npm run dev
 ```
 
-Open http://localhost:3000 in your browser or This project can be run using CreatorEngine(Mostly Browser don't allow to run and the browser will crash, So using CreatorEngine will be better choice for running locally).
+Open http://localhost:3000 in your browser.
 
 ## Available Scripts
 
