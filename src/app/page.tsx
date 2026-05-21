@@ -9,6 +9,7 @@ function SimulationCanvas() {
 
     useEffect(() => {
         let engine: any;
+        let isMounted = true; // Tracks if the component is still alive
         
         const startEngine = async () => {
             if (!canvasRef.current) return;
@@ -18,37 +19,51 @@ function SimulationCanvas() {
             await import("@babylonjs/core/Materials/standardMaterial");
             
             // --- CRITICAL FIX FOR YOUR CRASHES ---
-            // The Editor added a Skybox and Physics, so we MUST import them manually!
             try {
-                await import("@babylonjs/materials"); // Fixes the "BABYLON.SkyMaterial not found" error
+                await import("@babylonjs/materials"); 
             } catch (e) {
                 console.error("Missing materials package. Run: npm install @babylonjs/materials");
             }
 
             try {
-                // Fixes the "CANNON is not defined" error
-                // @ts-ignore - cannon lacks type definitions
                 const CANNON = await import("cannon"); 
                 (window as any).CANNON = CANNON;
             } catch (e) {
                 console.error("Missing cannon package. Run: npm install cannon");
             }
-            // --------------------------------------
             
             // 2. Import the Editor's script registry so VenturiController attaches
             try {
-                // Corrected path to match your project structure
                 await import("../../src/scripts"); 
             } catch (err) {
                 console.log("Scripts import failed", err);
             }
 
-            // 3. Initialize Engine & Load the exact Scene from your public folder
-            engine = new BABYLON.Engine(canvasRef.current, true, { preserveDrawingBuffer: true, stencil: true });
+            // CRITICAL FIX: Ensure the component didn't unmount while we were waiting for the massive 3D engine to download!
+            if (!isMounted || !canvasRef.current) return;
+
+            // 3. Initialize Engine safely
+            try {
+                engine = new BABYLON.Engine(canvasRef.current, true, { 
+                    preserveDrawingBuffer: true, 
+                    stencil: true,
+                    failIfMajorPerformanceCaveat: false // Prevents some browsers from blocking WebGL
+                });
+            } catch (engineError) {
+                console.error("WebGL failed to initialize. If you are hot-reloading, please refresh the page (F5) to clear the GPU cache.");
+                return;
+            }
             
             try {
                 const scene = await BABYLON.SceneLoader.LoadAsync("/scene/", "example.babylon", engine);
                 
+                // Double check it's still mounted after loading the scene
+                if (!isMounted) {
+                    scene.dispose();
+                    engine.dispose();
+                    return;
+                }
+
                 if (scene.activeCamera) {
                     scene.activeCamera.attachControl(canvasRef.current, true);
                 }
@@ -58,7 +73,7 @@ function SimulationCanvas() {
                 });
 
                 window.addEventListener("resize", () => {
-                    engine.resize();
+                    if (engine) engine.resize();
                 });
             } catch (e) {
                 console.error("Failed to load scene:", e);
@@ -68,8 +83,9 @@ function SimulationCanvas() {
         startEngine();
 
         return () => {
+            isMounted = false; // Immediately flag as dead
             if (engine) engine.dispose();
-            // Clean up the UI overlay if the user leaves the page
+            
             const ui = document.getElementById("hackathon-ui");
             if (ui) ui.remove();
         };
