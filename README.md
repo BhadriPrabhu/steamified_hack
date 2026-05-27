@@ -34,7 +34,7 @@ npm install
 ```
 
 ## Development
-`This project can also be run using CreatorEngine(Mostly Browser don't allow to run and the browser will crash, So using CreatorEngine will be better choice for running locally)`
+`This project can also be run using CreatorEngine (it usually works in the browser, but if the browser doesn't allow it to run or if it crashes, it can be simulated via CreatorEngine)`
 
 Run the development server locally:
 
