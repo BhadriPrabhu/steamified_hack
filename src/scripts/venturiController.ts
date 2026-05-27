@@ -61,8 +61,8 @@ export default class VenturiController {
         const pipeline = new DefaultRenderingPipeline("defaultPipeline", true, scene, scene.cameras);
         pipeline.samples = 4;
         pipeline.bloomEnabled = true;
-        pipeline.bloomThreshold = 0.6;
-        pipeline.bloomWeight = 0.4;
+        pipeline.bloomThreshold = 0.95;
+        pipeline.bloomWeight = 0;
 
         // --- 3. MATERIALS ---
         const fluidMat = new StandardMaterial("fluidMat", scene);
@@ -147,7 +147,7 @@ export default class VenturiController {
         this.flowParticles.minEmitBox = new Vector3(0, -380, -380);
         this.flowParticles.maxEmitBox = new Vector3(0, 380, 380);
 
-        this.flowParticles.color1 = new Color4(0.0, 1.0, 1.0, 1.0);
+        this.flowParticles.color1 = new Color4(0.0, 1.0, 10.0, 1.0);
         this.flowParticles.color2 = new Color4(0.0, 1.0, 0.5, 1.0);
         this.flowParticles.colorDead = new Color4(0, 0, 0.2, 0);
 
@@ -179,8 +179,8 @@ export default class VenturiController {
         // --- 8. CAMERA & LIGHTING ---
         const activeCamera = scene.activeCamera as ArcRotateCamera;
         if (activeCamera instanceof ArcRotateCamera) {
-            activeCamera.target.set(0, 3500, 0);
-            activeCamera.radius = 18000;
+            activeCamera.target.set(0, 5000, 0);
+            activeCamera.radius = 19000;
             activeCamera.maxZ = 100000;
 
             const camLight = new PointLight("camLight", Vector3.Zero(), scene);
