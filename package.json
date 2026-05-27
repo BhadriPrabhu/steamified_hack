@@ -20,6 +20,7 @@
 		"@iwsdk/core": "^0.3.1",
 		"babylonjs-editor-tools": "latest",
 		"cannon": "^0.6.2",
+		"lucide-react": "^1.16.0",
 		"next": "16.1.7",
 		"react": "18.2.0",
 		"react-dom": "18.2.0"
