@@ -28,6 +28,7 @@ export default class VenturiController {
     
     private collectingWater!: Mesh;
     private collectedVolume: number = 0;
+    private elapsedTime: number = 0; // NEW: Tracks real-world seconds
     private eglLine!: Mesh; 
     private dashboardTexture!: DynamicTexture;
 
@@ -118,7 +119,7 @@ export default class VenturiController {
 
         // --- 5. DYNAMIC ENERGY GRADIENT LINE ---
         const eglMat = new StandardMaterial("eglMat", scene);
-        eglMat.emissiveColor = new Color3(1.0, 0.1, 0.4); // Neon Pink/Red
+        eglMat.emissiveColor = new Color3(1.0, 0.1, 0.4); 
         
         this.eglLine = MeshBuilder.CreateCylinder("eglLine", { height: 15 * this.stepSize, diameter: 50 }, scene); 
         this.eglLine.rotation.z = Math.PI / 2;
@@ -161,7 +162,7 @@ export default class VenturiController {
         const activeCamera = scene.activeCamera as ArcRotateCamera;
         if (activeCamera instanceof ArcRotateCamera) {
             activeCamera.target.set(0, 3500, 0); 
-            activeCamera.radius = 18000; 
+            activeCamera.radius = 20000; 
             activeCamera.maxZ = 100000;
             
             const camLight = new PointLight("camLight", Vector3.Zero(), scene);
@@ -175,20 +176,16 @@ export default class VenturiController {
             }
         }
 
-        // --- 9. INTERACTIVE DRAGGABLE HTML OVERLAY (FIXED POSITIONING) ---
+        // --- 9. INTERACTIVE DRAGGABLE HTML OVERLAY ---
         const existingUI = document.getElementById("hackathon-ui");
         if (existingUI) existingUI.remove(); 
 
         const ui = document.createElement("div");
         ui.id = "hackathon-ui";
-        ui.style.position = "absolute";
-        
-        // CRITICAL FIX: Spawn the UI perfectly in the top-center of the screen!
-        // This avoids overlapping both the Left (Graph) and Right (Inspector) panels.
+        ui.style.position = "fixed"; 
         ui.style.top = "10px";
-        ui.style.left = "10px"; // 50% of viewport width minus half the UI width (380/2)
-        
-        ui.style.width = "380px";
+        ui.style.left = "10px"; 
+        ui.style.width = "300px";
         ui.style.backgroundColor = "rgba(13, 17, 23, 0.85)"; 
         ui.style.border = "1px solid #00e6ff";
         ui.style.borderRadius = "8px";
@@ -197,7 +194,7 @@ export default class VenturiController {
         ui.style.backdropFilter = "blur(12px)"; 
         ui.style.zIndex = "9999";
         ui.style.boxShadow = "0px 0px 30px rgba(0, 230, 255, 0.15)";
-        ui.style.pointerEvents = "auto"; // Allows dragging and clicking
+        ui.style.pointerEvents = "auto"; 
 
         ui.innerHTML = `
             <div id="ui-header" style="cursor: grab; padding: 15px 20px; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); border-radius: 8px 8px 0 0;">
@@ -206,57 +203,81 @@ export default class VenturiController {
             </div>
             <div id="ui-content" style="padding: 20px;">
                 <h4 style="color: #ff4444; margin: 0 0 15px 0; font-size: 14px; font-weight: normal; letter-spacing: 1px;">Verification of Bernoulli's equation - Venturi Simulation</h4>
-                <p style="font-size: 10px; line-height: 1.6; color: #c9d1d9; margin-bottom: 15px;">
-                    <strong>Thesis:</strong> Proving Bernoulli's Principle through real-time computational fluid mechanics and volumetric discharge measurement.
-                </p>
                 <div style="font-size: 12px; color: #8b949e; line-height: 1.8;">
-                    <div style="margin-bottom: 8px;"><span style="color: #00e6ff; font-weight: bold;">[ 1 ]</span> <b style="color: #fff;">FLOW RATE (Q):</b> Adjust in inspector.</div>
-                    <div style="margin-bottom: 8px;"><span style="color: #00e6ff; font-weight: bold;">[ 2 ]</span> <b style="color: #fff;">STOPWATCH:</b> Toggle for volumetric discharge.</div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <span style="color: #00e6ff; font-weight: bold;">[ 1 ]</span> <b style="color: #fff;">SYSTEM FLOW RATE (Q):</b>
+                        <input type="range" id="q-slider" min="0.01" max="0.35" step="0.01" value="${this.flowRateQ}" style="width: 100%; margin-top: 8px; cursor: pointer; accent-color: #00e6ff;">
+                        <div style="text-align: right; color: #00e6ff; font-size: 12px; font-weight: bold; margin-top: 4px;" id="q-val">${this.flowRateQ.toFixed(2)} m³/s</div>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <span style="color: #00e6ff; font-weight: bold;">[ 2 ]</span> <b style="color: #fff;">VOLUMETRIC DISCHARGE:</b>
+                        <button id="sw-btn" style="width: 100%; padding: 10px; margin-top: 8px; background: #1a2a40; color: #00e6ff; border: 1px solid #00e6ff; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.3s; font-family: 'Courier New';">START STOPWATCH</button>
+                    </div>
+
                     <div><span style="color: #00e6ff; font-weight: bold;">[ 3 ]</span> <b style="color: #ff4444;">EGL LINE:</b> Tracks Total Energy.</div>
                 </div>
             </div>
         `;
 
-        const canvas = scene.getEngine().getRenderingCanvas();
-        if (canvas && canvas.parentElement) {
-            canvas.parentElement.style.position = "relative"; 
-            canvas.parentElement.appendChild(ui);
-        } else {
-            document.body.appendChild(ui); 
+        document.body.appendChild(ui); 
+
+        // --- BULLETPROOF EVENT LISTENERS ---
+        const qSlider = document.getElementById("q-slider") as HTMLInputElement;
+        const qVal = document.getElementById("q-val");
+        if (qSlider && qVal) {
+            qSlider.addEventListener("input", (e) => {
+                this.flowRateQ = parseFloat((e.target as HTMLInputElement).value);
+                qVal.innerText = `${this.flowRateQ.toFixed(2)} m³/s`;
+            });
         }
 
-        // --- UI DRAG LOGIC (BULLETPROOF FIX) ---
+        const swBtn = document.getElementById("sw-btn");
+        if (swBtn) {
+            swBtn.addEventListener("click", () => {
+                if (this.runStopwatch === 0) {
+                    this.runStopwatch = 1;
+                    swBtn.innerText = "STOP & DRAIN TANK";
+                    swBtn.style.background = "rgba(255, 68, 68, 0.2)";
+                    swBtn.style.borderColor = "#ff4444";
+                    swBtn.style.color = "#ff4444";
+                } else {
+                    this.runStopwatch = 0;
+                    swBtn.innerText = "START STOPWATCH";
+                    swBtn.style.background = "#1a2a40";
+                    swBtn.style.borderColor = "#00e6ff";
+                    swBtn.style.color = "#00e6ff";
+                }
+            });
+        }
+
+        // --- UI DRAG LOGIC ---
         const header = document.getElementById("ui-header");
         let isDragging = false;
         let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
 
-        // Using pointerdown instead of mousedown stops the editor from hijacking the event
         header!.addEventListener("pointerdown", (e) => {
             isDragging = true;
             startX = e.clientX;
             startY = e.clientY;
-            
-            // Capture exact pixel position to override the 'calc()' CSS math
             initialLeft = ui.offsetLeft;
             initialTop = ui.offsetTop;
-            ui.style.left = `${initialLeft}px`;
-            ui.style.top = `${initialTop}px`;
-            
             header!.style.cursor = "grabbing";
-            e.preventDefault(); // Prevents the editor window from stealing the drag!
+            header!.setPointerCapture(e.pointerId); 
+            e.preventDefault(); 
         });
 
-        window.addEventListener("pointermove", (e) => {
+        header!.addEventListener("pointermove", (e) => {
             if (!isDragging) return;
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-            ui.style.left = `${initialLeft + dx}px`;
-            ui.style.top = `${initialTop + dy}px`;
+            ui.style.left = `${initialLeft + (e.clientX - startX)}px`;
+            ui.style.top = `${initialTop + (e.clientY - startY)}px`;
         });
 
-        window.addEventListener("pointerup", () => {
+        header!.addEventListener("pointerup", (e) => {
             isDragging = false;
-            if (header) header.style.cursor = "grab";
+            header!.style.cursor = "grab";
+            header!.releasePointerCapture(e.pointerId);
         });
 
         // --- UI MINIMIZE LOGIC ---
@@ -274,7 +295,11 @@ export default class VenturiController {
     }
 
     public onUpdate(): void {
-        const deltaTime = this.mesh.getScene().getAnimationRatio();
+        const scene = this.mesh.getScene();
+        const deltaTime = scene.getAnimationRatio(); // For smooth visual scaling
+        
+        // NEW: True Time-Based Math for the Stopwatch!
+        const engineDeltaSeconds = scene.getEngine().getDeltaTime() / 1000.0; 
         
         if (this.flowRateQ > 0 && this.waterColumns.length > 0) {
             for (let i = 0; i < this.waterColumns.length; i++) {
@@ -297,6 +322,7 @@ export default class VenturiController {
             this.flowParticles.minEmitPower = baseSpeed;
             this.flowParticles.maxEmitPower = baseSpeed * 1.5;
 
+            // --- REAL-TIME TELEMETRY DRAWING ---
             if (this.dashboardTexture) {
                 const ctx = this.dashboardTexture.getContext();
                 ctx.fillStyle = "#080c14"; 
@@ -321,9 +347,10 @@ export default class VenturiController {
                 ctx.font = "bold 60px Courier New";
                 ctx.fillText(`SYSTEM FLOW RATE (Q): ${this.flowRateQ.toFixed(3)} m³/s`, 1024, 220);
                 
+                // NEW: Shows the timer ticking actively on the dashboard!
                 if (this.runStopwatch === 1) {
                     ctx.fillStyle = "#00ffaa"; 
-                    ctx.fillText(`COLLECTED VOLUME: ${this.collectedVolume.toFixed(1)} L`, 1024, 300);
+                    ctx.fillText(`COLLECTED VOL: ${this.collectedVolume.toFixed(1)} L | TIME: ${this.elapsedTime.toFixed(2)}s`, 1024, 300);
                 } else {
                     ctx.fillStyle = "#4a5a70"; 
                     ctx.fillText(`STOPWATCH: OFFLINE`, 1024, 300);
@@ -349,14 +376,21 @@ export default class VenturiController {
             }
         }
 
+        // 2. TRUE TIME-BASED VOLUMETRIC DISCHARGE MEASUREMENT
         if (this.runStopwatch === 1 && this.collectingWater) {
-            this.collectedVolume += this.flowRateQ * deltaTime * 100; 
+            this.elapsedTime += engineDeltaSeconds; // Tracks real-world seconds
+            this.collectedVolume += this.flowRateQ * engineDeltaSeconds * 3000; // Accurate volume calculation
+            
             const targetHeight = Math.min(3800, this.collectedVolume);
-            this.collectingWater.scaling.y += (targetHeight - this.collectingWater.scaling.y) * 0.1 * deltaTime;
+            // Smoothly animate the water rising
+            this.collectingWater.scaling.y += (targetHeight - this.collectingWater.scaling.y) * 0.1; 
             this.collectingWater.position.y = -1500 + (this.collectingWater.scaling.y / 2); 
+            
         } else if (this.runStopwatch === 0 && this.collectingWater) {
+            this.elapsedTime = 0;
             this.collectedVolume = 0;
-            this.collectingWater.scaling.y += (0.01 - this.collectingWater.scaling.y) * 0.1 * deltaTime;
+            // Smoothly drain the tank
+            this.collectingWater.scaling.y += (0.01 - this.collectingWater.scaling.y) * 0.1;
             this.collectingWater.position.y = -1500 + (this.collectingWater.scaling.y / 2);
         }
     }
