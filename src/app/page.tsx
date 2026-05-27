@@ -2,14 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-// We isolate the 3D engine completely inside this child component
-// to guarantee Next.js never runs it on the server!
 function SimulationCanvas() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
         let engine: any;
-        let isMounted = true; // Tracks if the component is still alive
+        let isMounted = true;
         
         const startEngine = async () => {
             if (!canvasRef.current) return;
@@ -18,46 +16,34 @@ function SimulationCanvas() {
             const BABYLON = await import("@babylonjs/core");
             await import("@babylonjs/core/Materials/standardMaterial");
             
-            // --- CRITICAL FIX FOR YOUR CRASHES ---
-            try {
-                await import("@babylonjs/materials"); 
-            } catch (e) {
-                console.error("Missing materials package. Run: npm install @babylonjs/materials");
-            }
-
+            try { await import("@babylonjs/materials"); } catch (e) {}
             try {
                 const CANNON = await import("cannon"); 
                 (window as any).CANNON = CANNON;
-            } catch (e) {
-                console.error("Missing cannon package. Run: npm install cannon");
-            }
-            
-            // 2. Import the Editor's script registry so VenturiController attaches
-            try {
-                await import("../../src/scripts"); 
-            } catch (err) {
-                console.log("Scripts import failed", err);
-            }
+            } catch (e) {}
 
-            // CRITICAL FIX: Ensure the component didn't unmount while we were waiting for the massive 3D engine to download!
             if (!isMounted || !canvasRef.current) return;
 
-            // 3. Initialize Engine safely
+            // 2. Clear Zombie engines
+            if ((window as any)._activeEngine) {
+                try { (window as any)._activeEngine.dispose(); } catch (e) {}
+            }
+
             try {
                 engine = new BABYLON.Engine(canvasRef.current, true, { 
                     preserveDrawingBuffer: true, 
                     stencil: true,
-                    failIfMajorPerformanceCaveat: false // Prevents some browsers from blocking WebGL
+                    failIfMajorPerformanceCaveat: false 
                 });
+                (window as any)._activeEngine = engine;
             } catch (engineError) {
-                console.error("WebGL failed to initialize. If you are hot-reloading, please refresh the page (F5) to clear the GPU cache.");
+                console.error("WebGL failed to initialize. Please press F5.", engineError);
                 return;
             }
             
             try {
                 const scene = await BABYLON.SceneLoader.LoadAsync("/scene/", "example.babylon", engine);
                 
-                // Double check it's still mounted after loading the scene
                 if (!isMounted) {
                     scene.dispose();
                     engine.dispose();
@@ -67,6 +53,28 @@ function SimulationCanvas() {
                 if (scene.activeCamera) {
                     scene.activeCamera.attachControl(canvasRef.current, true);
                 }
+
+                // --- CRITICAL FIX: FORCE THE PHYSICS SIMULATION TO START ---
+                try {
+                    const VenturiModule = await import("../scripts/venturiController");
+                    const VenturiController = VenturiModule.default;
+                    
+                    // Attach script to the SystemController mesh (or default to root)
+                    const systemMesh = scene.getMeshByName("SystemController") || scene.meshes[0];
+                    
+                    const controller = new VenturiController(systemMesh as any);
+                    controller.onStart(); // Trigger the setup logic
+                    
+                    // Force the physics loop to execute every single frame
+                    scene.onBeforeRenderObservable.add(() => {
+                        controller.onUpdate();
+                    });
+                    
+                    console.log("✓ Venturi Physics Engine Online!");
+                } catch (scriptError) {
+                    console.error("Failed to inject physics controller:", scriptError);
+                }
+                // -----------------------------------------------------------
                 
                 engine.runRenderLoop(() => {
                     scene.render();
@@ -83,9 +91,11 @@ function SimulationCanvas() {
         startEngine();
 
         return () => {
-            isMounted = false; // Immediately flag as dead
-            if (engine) engine.dispose();
-            
+            isMounted = false;
+            if (engine) {
+                engine.dispose();
+                (window as any)._activeEngine = null;
+            }
             const ui = document.getElementById("hackathon-ui");
             if (ui) ui.remove();
         };
@@ -104,7 +114,6 @@ export default function Home() {
 
     if (!mounted) return null;
 
-    // IF BUTTON CLICKED -> SHOW THE 3D SIMULATION
     if (isSimulating) {
         return (
             <div style={{ width: '100vw', height: '100vh', margin: 0, overflow: 'hidden', backgroundColor: '#0d1117' }}>
@@ -113,7 +122,6 @@ export default function Home() {
         );
     }
 
-    // DEFAULT -> SHOW THE GORGEOUS LANDING PAGE
     return (
         <div style={{
             backgroundColor: '#0d1117',
@@ -131,14 +139,11 @@ export default function Home() {
                 <h1 style={{ color: '#00e6ff', fontSize: '3rem', margin: '0 0 20px 0', textShadow: '0 0 20px rgba(0, 230, 255, 0.4)' }}>
                     VENTURI METER SIMULATION
                 </h1>
-                
                 <div style={{ borderTop: '1px solid #30363d', margin: '30px 0' }}></div>
-                
                 <p style={{ color: '#c9d1d9', fontSize: '1.1rem', lineHeight: '1.8', marginBottom: '40px' }}>
                     A real-time computational fluid dynamics laboratory verifying Bernoulli's Principle. 
                     Featuring volumetric discharge tracking, dynamic energy gradients, and holographic telemetry.
                 </p>
-
                 <button 
                     onClick={() => setIsSimulating(true)}
                     style={{

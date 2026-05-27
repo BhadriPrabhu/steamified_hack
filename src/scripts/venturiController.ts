@@ -11,14 +11,10 @@ import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
-import { IScript, visibleAsNumber } from "babylonjs-editor-tools";
 
-export default class VenturiController implements IScript {
+export default class VenturiController {
     
-    @visibleAsNumber("Flow Rate (Q)", { min: 0.01, max: 0.35, step: 0.01 })
     private flowRateQ: number = 0.25;
-
-    @visibleAsNumber("Run Stopwatch (0=Off, 1=On)", { min: 0, max: 1, step: 1 })
     private runStopwatch: number = 0;
 
     private totalHeadH: number = 12.0; 
@@ -40,71 +36,64 @@ export default class VenturiController implements IScript {
     public onStart(): void {
         const scene = this.mesh.getScene();
 
-        // --- 1. LIGHTING (FIXED WHITE SHADOWS) ---
+        // --- 1. DIGITAL TWIN AESTHETIC ---
+        scene.clearColor = new Color4(0.03, 0.05, 0.08, 1.0); 
+
         if (scene.lights.length === 0) {
             const hemiLight = new HemisphericLight("hemiLight", new Vector3(0, 1, 0), scene);
-            hemiLight.intensity = 0.5; 
-            hemiLight.groundColor = new Color3(0.1, 0.1, 0.1);
+            hemiLight.intensity = 0.4; 
+            hemiLight.groundColor = new Color3(0.0, 0.0, 0.0);
             hemiLight.specular = new Color3(0, 0, 0); 
             
             const dirLight = new DirectionalLight("dirLight", new Vector3(-0.5, -1, -0.5), scene);
-            dirLight.intensity = 0.4;
+            dirLight.intensity = 0.3;
             dirLight.specular = new Color3(0, 0, 0); 
         }
         
-        // This stops the scene from glowing bright white
-        scene.ambientColor = new Color3(0.2, 0.2, 0.22);
+        scene.ambientColor = new Color3(0.1, 0.15, 0.2);
 
         // --- 2. BLOOM ---
         const pipeline = new DefaultRenderingPipeline("defaultPipeline", true, scene, scene.cameras);
         pipeline.samples = 4;
         pipeline.bloomEnabled = true;
-        pipeline.bloomThreshold = 0.8; 
-        pipeline.bloomWeight = 0.35; 
+        pipeline.bloomThreshold = 0.6; 
+        pipeline.bloomWeight = 0.4; 
 
-        // --- 3. MATERIALS (RESTORED INDUSTRIAL GUNMETAL) ---
+        // --- 3. MATERIALS ---
         const fluidMat = new StandardMaterial("fluidMat", scene);
-        fluidMat.diffuseColor = new Color3(0.0, 0.4, 1.0);
-        fluidMat.emissiveColor = new Color3(0.1, 0.5, 1.5); 
-        fluidMat.alpha = 0.99; 
+        fluidMat.diffuseColor = new Color3(0.0, 0.8, 1.0); 
+        fluidMat.emissiveColor = new Color3(0.0, 0.6, 1.2); 
+        fluidMat.alpha = 0.95; 
 
         const glassMat = new StandardMaterial("glassMat", scene);
-        glassMat.diffuseColor = new Color3(0.3, 0.5, 0.7);
-        glassMat.alpha = 0.1; 
-        glassMat.specularColor = new Color3(0.1, 0.1, 0.1); 
+        glassMat.diffuseColor = new Color3(0.0, 0.8, 1.0);
+        glassMat.alpha = 0.05; 
+        glassMat.specularColor = new Color3(0, 0, 0); 
         glassMat.needDepthPrePass = true; 
         glassMat.backFaceCulling = true; 
-
-        const pipeMat = new StandardMaterial("pipeMat", scene);
-        pipeMat.diffuseColor = new Color3(0.2, 0.4, 0.6);
-        pipeMat.alpha = 0.05; 
-        pipeMat.specularColor = new Color3(0, 0, 0);
-        pipeMat.backFaceCulling = true; 
         
         const tankGlassMat = new StandardMaterial("tankGlassMat", scene);
-        tankGlassMat.diffuseColor = new Color3(0.3, 0.5, 0.7);
-        tankGlassMat.alpha = 0.15;
-        tankGlassMat.specularColor = new Color3(0.1, 0.1, 0.1);
+        tankGlassMat.diffuseColor = new Color3(0.0, 0.8, 1.0);
+        tankGlassMat.alpha = 0.1;
+        tankGlassMat.emissiveColor = new Color3(0.0, 0.1, 0.2); 
         tankGlassMat.needDepthPrePass = true;
         tankGlassMat.backFaceCulling = false;
 
         const metalMat = new StandardMaterial("metalMat", scene);
-        // CRITICAL FIX: Dark gunmetal, NO blinding white ambient color
-        metalMat.diffuseColor = new Color3(0.18, 0.18, 0.2); 
-        metalMat.specularColor = new Color3(0.1, 0.1, 0.1); 
-        metalMat.ambientColor = new Color3(0.2, 0.2, 0.2); 
-        
+        metalMat.diffuseColor = new Color3(0.05, 0.08, 0.12); 
+        metalMat.specularColor = new Color3(0, 0, 0); 
+        metalMat.ambientColor = new Color3(0.1, 0.1, 0.15); 
+
         // --- 4. APPLY MATERIALS & FETCH MESHES ---
         for (let i = 0; i < 11; i++) {
             const water = scene.getMeshByName(`waterCol_${i}`) as Mesh;
-            if (water) {
-                water.material = fluidMat;
-                this.waterColumns.push(water);
-            }
+            if (water) { water.material = fluidMat; this.waterColumns.push(water); }
+            
             const glass = scene.getMeshByName(`glassTube_${i}`) as Mesh;
             if (glass) glass.material = glassMat;
+            
             const pipe = scene.getMeshByName(`venturiSeg_${i}`) as Mesh;
-            if (pipe) pipe.material = pipeMat; 
+            if (pipe) pipe.material = glassMat; 
 
             [`joint_${i}`, `fitting_${i}`, `strut_${i}`, `glassCap_${i}`].forEach(name => {
                 const part = scene.getMeshByName(name) as Mesh;
@@ -115,10 +104,8 @@ export default class VenturiController implements IScript {
             this.areas.push(Math.PI * Math.pow(r, 2));
         }
 
-        ["supplyTank", "basePlate"].forEach(name => {
-            const mesh = scene.getMeshByName(name) as Mesh;
-            if (mesh) mesh.material = metalMat;
-        });
+        const supplyTank = scene.getMeshByName("supplyTank") as Mesh;
+        if (supplyTank) supplyTank.material = metalMat;
 
         const collectingTank = scene.getMeshByName("collectingTank") as Mesh;
         if (collectingTank) collectingTank.material = tankGlassMat;
@@ -131,7 +118,7 @@ export default class VenturiController implements IScript {
 
         // --- 5. DYNAMIC ENERGY GRADIENT LINE ---
         const eglMat = new StandardMaterial("eglMat", scene);
-        eglMat.emissiveColor = new Color3(1.0, 0.2, 0.2); 
+        eglMat.emissiveColor = new Color3(1.0, 0.1, 0.4); // Neon Pink/Red
         
         this.eglLine = MeshBuilder.CreateCylinder("eglLine", { height: 15 * this.stepSize, diameter: 50 }, scene); 
         this.eglLine.rotation.z = Math.PI / 2;
@@ -141,12 +128,12 @@ export default class VenturiController implements IScript {
         this.flowParticles = new ParticleSystem("particles", 2000, scene);
         this.flowParticles.particleTexture = new Texture("https://assets.babylonjs.com/textures/flare.png", scene); 
         this.flowParticles.emitter = new Vector3(-5 * this.stepSize, 0, 0); 
-        
         this.flowParticles.minEmitBox = new Vector3(0, -300, -300); 
         this.flowParticles.maxEmitBox = new Vector3(0, 300, 300);
-        this.flowParticles.color1 = new Color4(0.0, 0.8, 1.0, 1.0);
-        this.flowParticles.color2 = new Color4(0.5, 0.9, 1.0, 1.0);
-        this.flowParticles.colorDead = new Color4(0, 0, 0.5, 0);
+        
+        this.flowParticles.color1 = new Color4(0.0, 1.0, 1.0, 1.0);
+        this.flowParticles.color2 = new Color4(0.0, 1.0, 0.5, 1.0);
+        this.flowParticles.colorDead = new Color4(0, 0, 0.2, 0);
         
         this.flowParticles.minSize = 350.0;
         this.flowParticles.maxSize = 650.0;
@@ -170,10 +157,10 @@ export default class VenturiController implements IScript {
         dashMat.backFaceCulling = false;
         dashboardPlane.material = dashMat;
 
-        // --- 8. PERFECT CAMERA FRAMING ---
+        // --- 8. CAMERA & LIGHTING ---
         const activeCamera = scene.activeCamera as ArcRotateCamera;
         if (activeCamera instanceof ArcRotateCamera) {
-            activeCamera.target.set(0, 4000, 0); 
+            activeCamera.target.set(0, 3500, 0); 
             activeCamera.radius = 18000; 
             activeCamera.maxZ = 100000;
             
@@ -182,10 +169,9 @@ export default class VenturiController implements IScript {
             camLight.intensity = 0.35;
             camLight.specular = new Color3(0, 0, 0);
 
-            // BONUS: Cinematic Auto-Rotate!
             activeCamera.useAutoRotationBehavior = true;
             if (activeCamera.autoRotationBehavior) {
-                activeCamera.autoRotationBehavior.idleRotationSpeed = -0.05; // Slow, elegant spin
+                activeCamera.autoRotationBehavior.idleRotationSpeed = -0.05; 
             }
         }
 
@@ -290,7 +276,6 @@ export default class VenturiController implements IScript {
     public onUpdate(): void {
         const deltaTime = this.mesh.getScene().getAnimationRatio();
         
-        // 1. Core Physics Math
         if (this.flowRateQ > 0 && this.waterColumns.length > 0) {
             for (let i = 0; i < this.waterColumns.length; i++) {
                 const v = this.flowRateQ / this.areas[i];
@@ -302,7 +287,6 @@ export default class VenturiController implements IScript {
 
                 waterMesh.scaling.y += (targetVisualHeight - waterMesh.scaling.y) * 0.08 * deltaTime;
                 waterMesh.position.y = (waterMesh.scaling.y / 2) + 10; 
-                // CRITICAL FIX: renderingGroupId removed so water sits INSIDE the metal caps!
             }
 
             const exitV = this.flowRateQ / this.areas[this.areas.length - 1];
@@ -313,13 +297,11 @@ export default class VenturiController implements IScript {
             this.flowParticles.minEmitPower = baseSpeed;
             this.flowParticles.maxEmitPower = baseSpeed * 1.5;
 
-            // --- REAL-TIME TELEMETRY DRAWING ---
             if (this.dashboardTexture) {
                 const ctx = this.dashboardTexture.getContext();
-                ctx.fillStyle = "#0d1117"; 
+                ctx.fillStyle = "#080c14"; 
                 ctx.fillRect(0, 0, 2048, 1024);
                 
-                // Neon Border
                 ctx.strokeStyle = "#00e6ff";
                 ctx.lineWidth = 10;
                 ctx.strokeRect(10, 10, 2028, 1004);
@@ -329,13 +311,10 @@ export default class VenturiController implements IScript {
                 (ctx as any).textAlign = "center";
                 ctx.fillText("VENTURI METER TELEMETRY", 1024, 100);
 
-                // Math for Inlet (Area 0) and Throat (Area 5)
                 const inletV = this.flowRateQ / this.areas[0];
                 const inletP = Math.max(1.6, this.totalHeadH - (Math.pow(inletV, 2) / (2 * this.g)));
-
                 const throatV = this.flowRateQ / this.areas[5];
                 const throatP = Math.max(1.6, this.totalHeadH - (Math.pow(throatV, 2) / (2 * this.g)));
-                
                 const deltaP = inletP - throatP;
 
                 ctx.fillStyle = "#ffffff";
@@ -343,29 +322,25 @@ export default class VenturiController implements IScript {
                 ctx.fillText(`SYSTEM FLOW RATE (Q): ${this.flowRateQ.toFixed(3)} m³/s`, 1024, 220);
                 
                 if (this.runStopwatch === 1) {
-                    ctx.fillStyle = "#00ffaa"; // Neon Green
+                    ctx.fillStyle = "#00ffaa"; 
                     ctx.fillText(`COLLECTED VOLUME: ${this.collectedVolume.toFixed(1)} L`, 1024, 300);
                 } else {
-                    ctx.fillStyle = "#666666"; // Grey
+                    ctx.fillStyle = "#4a5a70"; 
                     ctx.fillText(`STOPWATCH: OFFLINE`, 1024, 300);
                 }
 
-                // Column Headers
-                ctx.fillStyle = "#aaaaaa";
+                ctx.fillStyle = "#7a8a9e";
                 ctx.font = "50px Courier New";
                 ctx.fillText("--- INLET (WIDE) ---", 512, 450);
                 ctx.fillText("--- THROAT (NARROW) ---", 1536, 450);
 
-                // Core Data Comparison
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "60px Courier New";
                 ctx.fillText(`Velocity : ${inletV.toFixed(2)} m/s`, 512, 550);
                 ctx.fillText(`Velocity : ${throatV.toFixed(2)} m/s`, 1536, 550);
-                
                 ctx.fillText(`Pressure : ${inletP.toFixed(2)} m`, 512, 650);
                 ctx.fillText(`Pressure : ${throatP.toFixed(2)} m`, 1536, 650);
 
-                // The Bernoulli Proof
                 ctx.fillStyle = "#ff4444"; 
                 ctx.font = "bold 70px Courier New";
                 ctx.fillText(`ΔP (HEAD DIFFERENCE): ${deltaP.toFixed(2)} m`, 1024, 850);
@@ -374,14 +349,11 @@ export default class VenturiController implements IScript {
             }
         }
 
-        // 2. Volumetric Discharge Measurement 
         if (this.runStopwatch === 1 && this.collectingWater) {
             this.collectedVolume += this.flowRateQ * deltaTime * 100; 
             const targetHeight = Math.min(3800, this.collectedVolume);
-            
             this.collectingWater.scaling.y += (targetHeight - this.collectingWater.scaling.y) * 0.1 * deltaTime;
             this.collectingWater.position.y = -1500 + (this.collectingWater.scaling.y / 2); 
-            
         } else if (this.runStopwatch === 0 && this.collectingWater) {
             this.collectedVolume = 0;
             this.collectingWater.scaling.y += (0.01 - this.collectingWater.scaling.y) * 0.1 * deltaTime;
