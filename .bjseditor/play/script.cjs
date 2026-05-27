@@ -2190,6 +2190,7 @@ var VenturiController = class {
     this.waterColumns = [];
     this.areas = [];
     this.collectedVolume = 0;
+    this.elapsedTime = 0;
   }
   static {
     __name(this, "VenturiController");
@@ -2292,7 +2293,7 @@ var VenturiController = class {
     const activeCamera = scene.activeCamera;
     if (activeCamera instanceof import_babylonjs78.ArcRotateCamera) {
       activeCamera.target.set(0, 3500, 0);
-      activeCamera.radius = 18e3;
+      activeCamera.radius = 2e4;
       activeCamera.maxZ = 1e5;
       const camLight = new import_babylonjs76.PointLight("camLight", import_babylonjs73.Vector3.Zero(), scene);
       camLight.parent = activeCamera;
@@ -2307,10 +2308,10 @@ var VenturiController = class {
     if (existingUI) existingUI.remove();
     const ui = document.createElement("div");
     ui.id = "hackathon-ui";
-    ui.style.position = "absolute";
+    ui.style.position = "fixed";
     ui.style.top = "10px";
     ui.style.left = "10px";
-    ui.style.width = "380px";
+    ui.style.width = "300px";
     ui.style.backgroundColor = "rgba(13, 17, 23, 0.85)";
     ui.style.border = "1px solid #00e6ff";
     ui.style.borderRadius = "8px";
@@ -2327,22 +2328,49 @@ var VenturiController = class {
             </div>
             <div id="ui-content" style="padding: 20px;">
                 <h4 style="color: #ff4444; margin: 0 0 15px 0; font-size: 14px; font-weight: normal; letter-spacing: 1px;">Verification of Bernoulli's equation - Venturi Simulation</h4>
-                <p style="font-size: 13px; line-height: 1.6; color: #c9d1d9; margin-bottom: 15px;">
-                    <strong>Thesis:</strong> Proving Bernoulli's Principle through real-time computational fluid mechanics and volumetric discharge measurement.
-                </p>
                 <div style="font-size: 12px; color: #8b949e; line-height: 1.8;">
-                    <div style="margin-bottom: 8px;"><span style="color: #00e6ff; font-weight: bold;">[ 1 ]</span> <b style="color: #fff;">FLOW RATE (Q):</b> Adjust in inspector.</div>
-                    <div style="margin-bottom: 8px;"><span style="color: #00e6ff; font-weight: bold;">[ 2 ]</span> <b style="color: #fff;">STOPWATCH:</b> Toggle for volumetric discharge.</div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <span style="color: #00e6ff; font-weight: bold;">[ 1 ]</span> <b style="color: #fff;">SYSTEM FLOW RATE (Q):</b>
+                        <input type="range" id="q-slider" min="0.01" max="0.35" step="0.01" value="${this.flowRateQ}" style="width: 100%; margin-top: 8px; cursor: pointer; accent-color: #00e6ff;">
+                        <div style="text-align: right; color: #00e6ff; font-size: 12px; font-weight: bold; margin-top: 4px;" id="q-val">${this.flowRateQ.toFixed(2)} m\xB3/s</div>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <span style="color: #00e6ff; font-weight: bold;">[ 2 ]</span> <b style="color: #fff;">VOLUMETRIC DISCHARGE:</b>
+                        <button id="sw-btn" style="width: 100%; padding: 10px; margin-top: 8px; background: #1a2a40; color: #00e6ff; border: 1px solid #00e6ff; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.3s; font-family: 'Courier New';">START STOPWATCH</button>
+                    </div>
+
                     <div><span style="color: #00e6ff; font-weight: bold;">[ 3 ]</span> <b style="color: #ff4444;">EGL LINE:</b> Tracks Total Energy.</div>
                 </div>
             </div>
         `;
-    const canvas = scene.getEngine().getRenderingCanvas();
-    if (canvas && canvas.parentElement) {
-      canvas.parentElement.style.position = "relative";
-      canvas.parentElement.appendChild(ui);
-    } else {
-      document.body.appendChild(ui);
+    document.body.appendChild(ui);
+    const qSlider = document.getElementById("q-slider");
+    const qVal = document.getElementById("q-val");
+    if (qSlider && qVal) {
+      qSlider.addEventListener("input", (e) => {
+        this.flowRateQ = parseFloat(e.target.value);
+        qVal.innerText = `${this.flowRateQ.toFixed(2)} m\xB3/s`;
+      });
+    }
+    const swBtn = document.getElementById("sw-btn");
+    if (swBtn) {
+      swBtn.addEventListener("click", () => {
+        if (this.runStopwatch === 0) {
+          this.runStopwatch = 1;
+          swBtn.innerText = "STOP & DRAIN TANK";
+          swBtn.style.background = "rgba(255, 68, 68, 0.2)";
+          swBtn.style.borderColor = "#ff4444";
+          swBtn.style.color = "#ff4444";
+        } else {
+          this.runStopwatch = 0;
+          swBtn.innerText = "START STOPWATCH";
+          swBtn.style.background = "#1a2a40";
+          swBtn.style.borderColor = "#00e6ff";
+          swBtn.style.color = "#00e6ff";
+        }
+      });
     }
     const header = document.getElementById("ui-header");
     let isDragging = false;
@@ -2353,21 +2381,19 @@ var VenturiController = class {
       startY = e.clientY;
       initialLeft = ui.offsetLeft;
       initialTop = ui.offsetTop;
-      ui.style.left = `${initialLeft}px`;
-      ui.style.top = `${initialTop}px`;
       header.style.cursor = "grabbing";
+      header.setPointerCapture(e.pointerId);
       e.preventDefault();
     });
-    window.addEventListener("pointermove", (e) => {
+    header.addEventListener("pointermove", (e) => {
       if (!isDragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      ui.style.left = `${initialLeft + dx}px`;
-      ui.style.top = `${initialTop + dy}px`;
+      ui.style.left = `${initialLeft + (e.clientX - startX)}px`;
+      ui.style.top = `${initialTop + (e.clientY - startY)}px`;
     });
-    window.addEventListener("pointerup", () => {
+    header.addEventListener("pointerup", (e) => {
       isDragging = false;
-      if (header) header.style.cursor = "grab";
+      header.style.cursor = "grab";
+      header.releasePointerCapture(e.pointerId);
     });
     const minBtn = document.getElementById("ui-minimize");
     const content = document.getElementById("ui-content");
@@ -2382,7 +2408,9 @@ var VenturiController = class {
     };
   }
   onUpdate() {
-    const deltaTime = this.mesh.getScene().getAnimationRatio();
+    const scene = this.mesh.getScene();
+    const deltaTime = scene.getAnimationRatio();
+    const engineDeltaSeconds = scene.getEngine().getDeltaTime() / 1e3;
     if (this.flowRateQ > 0 && this.waterColumns.length > 0) {
       for (let i = 0; i < this.waterColumns.length; i++) {
         const v = this.flowRateQ / this.areas[i];
@@ -2420,7 +2448,7 @@ var VenturiController = class {
         ctx.fillText(`SYSTEM FLOW RATE (Q): ${this.flowRateQ.toFixed(3)} m\xB3/s`, 1024, 220);
         if (this.runStopwatch === 1) {
           ctx.fillStyle = "#00ffaa";
-          ctx.fillText(`COLLECTED VOLUME: ${this.collectedVolume.toFixed(1)} L`, 1024, 300);
+          ctx.fillText(`COLLECTED VOL: ${this.collectedVolume.toFixed(1)} L | TIME: ${this.elapsedTime.toFixed(2)}s`, 1024, 300);
         } else {
           ctx.fillStyle = "#4a5a70";
           ctx.fillText(`STOPWATCH: OFFLINE`, 1024, 300);
@@ -2442,13 +2470,15 @@ var VenturiController = class {
       }
     }
     if (this.runStopwatch === 1 && this.collectingWater) {
-      this.collectedVolume += this.flowRateQ * deltaTime * 100;
+      this.elapsedTime += engineDeltaSeconds;
+      this.collectedVolume += this.flowRateQ * engineDeltaSeconds * 3e3;
       const targetHeight = Math.min(3800, this.collectedVolume);
-      this.collectingWater.scaling.y += (targetHeight - this.collectingWater.scaling.y) * 0.1 * deltaTime;
+      this.collectingWater.scaling.y += (targetHeight - this.collectingWater.scaling.y) * 0.1;
       this.collectingWater.position.y = -1500 + this.collectingWater.scaling.y / 2;
     } else if (this.runStopwatch === 0 && this.collectingWater) {
+      this.elapsedTime = 0;
       this.collectedVolume = 0;
-      this.collectingWater.scaling.y += (0.01 - this.collectingWater.scaling.y) * 0.1 * deltaTime;
+      this.collectingWater.scaling.y += (0.01 - this.collectingWater.scaling.y) * 0.1;
       this.collectingWater.position.y = -1500 + this.collectingWater.scaling.y / 2;
     }
   }
