@@ -107,6 +107,7 @@ function SimulationCanvas() {
 export default function Home() {
     const [isSimulating, setIsSimulating] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -124,41 +125,111 @@ export default function Home() {
 
     return (
         <div style={{
-            backgroundColor: '#0d1117',
+            background: 'radial-gradient(circle at 50% -20%, #1a2a3a 0%, #0d1117 80%)',
             color: '#ffffff',
             minHeight: '100vh',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            fontFamily: '"Courier New", Courier, monospace',
-            padding: '20px'
+            fontFamily: '"JetBrains Mono", "Courier New", Courier, monospace',
+            padding: '20px',
+            boxSizing: 'border-box'
         }}>
-            <div style={{ textAlign: 'center', maxWidth: '800px', padding: '40px', border: '1px solid #30363d', borderRadius: '12px', backgroundColor: 'rgba(255,255,255,0.02)', boxShadow: '0 0 50px rgba(0, 230, 255, 0.05)' }}>
-                <h3 style={{ color: '#ff4444', letterSpacing: '4px', margin: '0 0 10px 0' }}>TEAM DEFY_404 PRESENTS</h3>
-                <h1 style={{ color: '#00e6ff', fontSize: '3rem', margin: '0 0 20px 0', textShadow: '0 0 20px rgba(0, 230, 255, 0.4)' }}>
-                    VENTURI METER SIMULATION
+            <div style={{ 
+                textAlign: 'center', 
+                maxWidth: '850px', 
+                padding: '50px', 
+                border: '1px solid rgba(0, 230, 255, 0.15)', 
+                borderRadius: '16px', 
+                background: 'rgba(13, 17, 23, 0.6)', 
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.02)',
+                position: 'relative',
+                overflow: 'hidden'
+            }}>
+                {/* Decorative Top Accent */}
+                <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '150px',
+                    height: '3px',
+                    background: '#ff4444',
+                    boxShadow: '0 0 15px #ff4444'
+                }}></div>
+
+                <h3 style={{ 
+                    color: '#ff4444', 
+                    letterSpacing: '6px', 
+                    margin: '0 0 16px 0',
+                    fontSize: '0.9rem',
+                    fontWeight: '600',
+                    textTransform: 'uppercase'
+                }}>
+                    Team Defy_404 Presents
+                </h3>
+                
+                <h1 style={{ 
+                    color: '#ffffff', 
+                    fontSize: '2.2rem', 
+                    margin: '0 0 10px 0', 
+                    fontWeight: '800',
+                    letterSpacing: '-0.5px'
+                }}>
+                    Bernoulli's Equation Verification
                 </h1>
-                <div style={{ borderTop: '1px solid #30363d', margin: '30px 0' }}></div>
-                <p style={{ color: '#c9d1d9', fontSize: '1.1rem', lineHeight: '1.8', marginBottom: '40px' }}>
-                    A real-time computational fluid dynamics laboratory verifying Bernoulli's Principle. 
+                
+                <h2 style={{
+                    color: '#00e6ff',
+                    fontSize: '1.4rem',
+                    margin: '0 0 30px 0',
+                    fontWeight: '400',
+                    textShadow: '0 0 15px rgba(0, 230, 255, 0.3)'
+                }}>
+                    Venturi Meter Simulation Engine
+                </h2>
+
+                <div style={{ 
+                    width: '100%', 
+                    height: '1px', 
+                    background: 'linear-gradient(90deg, transparent, rgba(0, 230, 255, 0.3), transparent)', 
+                    margin: '35px 0' 
+                }}></div>
+
+                <p style={{ 
+                    color: '#8b949e', 
+                    fontSize: '1.1rem', 
+                    lineHeight: '1.8', 
+                    marginBottom: '45px',
+                    maxWidth: '650px',
+                    marginLeft: 'auto',
+                    marginRight: 'auto'
+                }}>
+                    A real-time computational fluid dynamics laboratory. 
                     Featuring volumetric discharge tracking, dynamic energy gradients, and holographic telemetry.
                 </p>
+
                 <button 
                     onClick={() => setIsSimulating(true)}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
                     style={{
-                        padding: '18px 45px',
-                        fontSize: '1.2rem',
-                        fontWeight: 'bold',
-                        color: '#0d1117',
-                        backgroundColor: '#00e6ff',
-                        border: 'none',
-                        borderRadius: '6px',
+                        padding: '18px 50px',
+                        fontSize: '1.1rem',
+                        fontWeight: '700',
+                        color: isHovered ? '#ffffff' : '#0d1117',
+                        backgroundColor: isHovered ? 'transparent' : '#00e6ff',
+                        border: '2px solid #00e6ff',
+                        borderRadius: '4px',
                         cursor: 'pointer',
                         textTransform: 'uppercase',
-                        letterSpacing: '2px',
-                        boxShadow: '0 0 20px rgba(0, 230, 255, 0.4)',
-                        transition: 'all 0.3s ease'
+                        letterSpacing: '3px',
+                        boxShadow: isHovered ? '0 0 30px rgba(0, 230, 255, 0.6) inset' : '0 0 20px rgba(0, 230, 255, 0.3)',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)'
                     }}
                 >
                     Initialize Simulation

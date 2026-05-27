@@ -185,8 +185,8 @@ export default class VenturiController {
         
         // CRITICAL FIX: Spawn the UI perfectly in the top-center of the screen!
         // This avoids overlapping both the Left (Graph) and Right (Inspector) panels.
-        ui.style.top = "30px";
-        ui.style.left = "calc(50vw - 190px)"; // 50% of viewport width minus half the UI width (380/2)
+        ui.style.top = "10px";
+        ui.style.left = "10px"; // 50% of viewport width minus half the UI width (380/2)
         
         ui.style.width = "380px";
         ui.style.backgroundColor = "rgba(13, 17, 23, 0.85)"; 
@@ -206,7 +206,7 @@ export default class VenturiController {
             </div>
             <div id="ui-content" style="padding: 20px;">
                 <h4 style="color: #ff4444; margin: 0 0 15px 0; font-size: 14px; font-weight: normal; letter-spacing: 1px;">Verification of Bernoulli's equation - Venturi Simulation</h4>
-                <p style="font-size: 13px; line-height: 1.6; color: #c9d1d9; margin-bottom: 15px;">
+                <p style="font-size: 10px; line-height: 1.6; color: #c9d1d9; margin-bottom: 15px;">
                     <strong>Thesis:</strong> Proving Bernoulli's Principle through real-time computational fluid mechanics and volumetric discharge measurement.
                 </p>
                 <div style="font-size: 12px; color: #8b949e; line-height: 1.8;">
