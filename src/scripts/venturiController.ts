@@ -17,6 +17,9 @@ export default class VenturiController {
     private flowRateQ: number = 0.25;
     private runStopwatch: number = 0;
 
+    private fluidDensity: number = 1000;
+    private throatScale: number = 1.0;
+
     private totalHeadH: number = 12.0;
     private readonly g: number = 9.81;
     private readonly S: number = 500;
@@ -36,15 +39,15 @@ export default class VenturiController {
     private logEvent(message: string) {
         const now = new Date();
         const timeString = now.toLocaleTimeString('en-US', { hour12: false }); // Get HH:MM:SS
-        
+
         // Dynamically color code the text based on the event type
-        let color = "#a0aec0"; 
+        let color = "#a0aec0";
         if (message.includes("ENGAGED")) color = "#00ffaa"; // Neon Green
         if (message.includes("HALTED")) color = "#ff4444"; // Red
         if (message.includes("adjusted")) color = "#00e6ff"; // Cyan
 
         const logHtml = `<div style="margin-bottom: 6px; line-height: 1.4;"><span style="color: #586069;">[${timeString}]</span> <span style="color: ${color};">${message}</span></div>`;
-        
+
         const container = document.getElementById("event-log-container");
         if (container) {
             container.insertAdjacentHTML('beforeend', logHtml);
@@ -111,10 +114,10 @@ export default class VenturiController {
         metalMat.ambientColor = new Color3(0.1, 0.1, 0.15);
 
         const pipeMat = new StandardMaterial("pipeMat", scene);
-        pipeMat.diffuseColor = new Color3(0.0, 0.8, 1.0); 
-        pipeMat.emissiveColor = new Color3(0.0, 0.1, 0.2); 
-        pipeMat.alpha = 0.15; 
-        pipeMat.specularColor = new Color3(0.3, 0.5, 0.6); 
+        pipeMat.diffuseColor = new Color3(0.0, 0.8, 1.0);
+        pipeMat.emissiveColor = new Color3(0.0, 0.1, 0.2);
+        pipeMat.alpha = 0.15;
+        pipeMat.specularColor = new Color3(0.3, 0.5, 0.6);
         pipeMat.backFaceCulling = true;
 
         // --- 4. APPLY MATERIALS & FETCH MESHES ---
@@ -133,8 +136,7 @@ export default class VenturiController {
                 if (part) part.material = metalMat;
             });
 
-            let r = i <= 5 ? 0.3 - (i / 5) * (0.2) : 0.1 + ((i - 5) / 5) * (0.2);
-            this.areas.push(Math.PI * Math.pow(r, 2));
+            this.areas.push(0);
         }
 
         const supplyTank = scene.getMeshByName("supplyTank") as Mesh;
@@ -230,29 +232,44 @@ export default class VenturiController {
 
         ui.innerHTML = `
             <div id="ui-header" style="cursor: grab; padding: 15px 20px; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); border-radius: 8px 8px 0 0;">
-                <h2 style="color: #00e6ff; margin: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 2px;">Team Defy_404</h2>
+                <h2 style="color: #00e6ff; margin: 0; font-size: 18px; text-transform: uppercase; letter-spacing: 2px;">Team Defy_404</h2>
                 <button id="ui-minimize" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; outline: none;">➖</button>
             </div>
-            <div id="ui-content" style="padding: 20px;">
-                <h4 style="color: #ff4444; margin: 0 0 15px 0; font-size: 14px; font-weight: normal; letter-spacing: 1px;">Verification of Bernoulli's equation - Venturi Simulation</h4>
-                <div style="font-size: 12px; color: #8b949e; line-height: 1.8;">
+            <div id="ui-content" style="padding: 15px; height: 400px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #00e6ff #0d1117;">
+                <h4 style="color: #ff4444; margin: 0 0 15px 0; font-size: 13px; font-weight: normal; letter-spacing: 1px;">Verification of Bernoulli's equation</h4>
+                <div style="font-size: 11px; color: #8b949e; line-height: 1.8;">
                     
-                    <div style="margin-bottom: 10px;">
+                    <div style="margin-bottom: 12px;">
                         <span style="color: #00e6ff; font-weight: bold;">[ 1 ]</span> <b style="color: #fff;">SYSTEM FLOW RATE (Q):</b>
-                        <input type="range" id="q-slider" min="0.01" max="0.35" step="0.01" value="${this.flowRateQ}" style="width: 100%; margin-top: 8px; cursor: pointer; accent-color: #00e6ff;">
-                        <div style="text-align: right; color: #00e6ff; font-size: 12px; font-weight: bold; margin-top: 4px;" id="q-val">${this.flowRateQ.toFixed(2)} m³/s</div>
+                        <input type="range" id="q-slider" min="0.01" max="0.35" step="0.01" value="${this.flowRateQ}" style="width: 100%; margin-top: 6px; cursor: pointer; accent-color: #00e6ff;">
+                        <div style="text-align: right; color: #00e6ff; font-size: 12px; font-weight: bold; margin-top: 2px;" id="q-val">${this.flowRateQ.toFixed(2)} m³/s</div>
                     </div>
 
-                    <div style="margin-bottom: 10px;">
-                        <span style="color: #00e6ff; font-weight: bold;">[ 2 ]</span> <b style="color: #fff;">VOLUMETRIC DISCHARGE:</b>
-                        <button id="sw-btn" style="width: 100%; padding: 10px; margin-top: 8px; background: #1a2a40; color: #00e6ff; border: 1px solid #00e6ff; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.3s; font-family: 'Courier New';">START STOPWATCH</button>
+                    <div style="margin-bottom: 12px;">
+                        <span style="color: #00e6ff; font-weight: bold;">[ 2 ]</span> <b style="color: #fff;">FLUID TYPE (DENSITY):</b>
+                        <select id="fluid-select" style="width: 100%; margin-top: 6px; padding: 6px; background: #080c14; color: #00e6ff; border: 1px solid #00e6ff; border-radius: 4px; font-family: 'Courier New'; cursor: pointer; outline: none;">
+                            <option value="1000">Water (ρ = 1000 kg/m³)</option>
+                            <option value="1420">Honey (ρ = 1420 kg/m³)</option>
+                            <option value="720">Gasoline (ρ = 720 kg/m³)</option>
+                        </select>
                     </div>
 
-                    <div style="margin-bottom: 10px;"><span style="color: #00e6ff; font-weight: bold;">[ 3 ]</span> <b style="color: #ff4444;">EGL LINE:</b> Tracks Total Energy.</div>
+                    <div style="margin-bottom: 12px;">
+                        <span style="color: #00e6ff; font-weight: bold;">[ 3 ]</span> <b style="color: #fff;">THROAT APERTURE:</b>
+                        <input type="range" id="squeeze-slider" min="0.5" max="1.5" step="0.05" value="1.0" style="width: 100%; margin-top: 6px; cursor: pointer; accent-color: #00e6ff;">
+                        <div style="text-align: right; color: #00e6ff; font-size: 12px; font-weight: bold; margin-top: 2px;" id="squeeze-val">100% Scale</div>
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <span style="color: #00e6ff; font-weight: bold;">[ 4 ]</span> <b style="color: #fff;">VOLUMETRIC DISCHARGE:</b>
+                        <button id="sw-btn" style="width: 100%; padding: 8px; margin-top: 6px; background: #1a2a40; color: #00e6ff; border: 1px solid #00e6ff; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.3s; font-family: 'Courier New';">START STOPWATCH</button>
+                    </div>
+
+                    <div style="margin-bottom: 10px;"><span style="color: #00e6ff; font-weight: bold;">[ 5 ]</span> <b style="color: #ff4444;">EGL LINE:</b> Tracks Total Energy.</div>
 
                     <div style="border-top: 1px solid #1a2a40; padding-top: 10px;">
-                        <span style="color: #00e6ff; font-weight: bold;">[ 4 ]</span> <b style="color: #fff;">LIVE EVENT LOG:</b>
-                        <div id="event-log-container" style="margin-top: 8px; width: 100%; height: 110px; background: #080c14; border: 1px solid #1a2a40; border-radius: 4px; padding: 8px; font-size: 11px; overflow-y: auto; box-sizing: border-box; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">
+                        <span style="color: #00e6ff; font-weight: bold;">[ 6 ]</span> <b style="color: #fff;">LIVE EVENT LOG:</b>
+                        <div id="event-log-container" style="margin-top: 8px; width: 100%; height: 95px; background: #080c14; border: 1px solid #1a2a40; border-radius: 4px; padding: 8px; font-size: 11px; overflow-y: auto; box-sizing: border-box; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">
                             </div>
                     </div>
 
@@ -264,6 +281,39 @@ export default class VenturiController {
 
         // --- Push Initial Log ---
         this.logEvent("Simulation Engine Initialized.");
+
+        const fluidSelect = document.getElementById("fluid-select") as HTMLSelectElement;
+        if (fluidSelect) {
+            fluidSelect.addEventListener("change", (e) => {
+                const val = parseInt((e.target as HTMLSelectElement).value);
+                this.fluidDensity = val;
+
+                let fluidName = "Water";
+                if (val === 1420) fluidName = "Honey";
+                if (val === 720) fluidName = "Gasoline";
+
+                // Dynamically change fluid and particle colors based on liquid type!
+                const fMat = scene.getMaterialByName("fluidMat") as StandardMaterial;
+                if (fMat) {
+                    if (val === 1000) { fMat.diffuseColor = new Color3(0.0, 0.8, 1.0); fMat.emissiveColor = new Color3(0.0, 0.6, 1.2); this.flowParticles.color1 = new Color4(0.0, 1.0, 1.0, 1.0); this.flowParticles.color2 = new Color4(0.0, 1.0, 0.5, 1.0); }
+                    if (val === 1420) { fMat.diffuseColor = new Color3(1.0, 0.6, 0.0); fMat.emissiveColor = new Color3(0.8, 0.4, 0.0); this.flowParticles.color1 = new Color4(1.0, 0.8, 0.0, 1.0); this.flowParticles.color2 = new Color4(1.0, 0.5, 0.0, 1.0); }
+                    if (val === 720) { fMat.diffuseColor = new Color3(0.5, 1.0, 0.2); fMat.emissiveColor = new Color3(0.3, 0.8, 0.1); this.flowParticles.color1 = new Color4(0.5, 1.0, 0.2, 1.0); this.flowParticles.color2 = new Color4(0.2, 0.8, 0.1, 1.0); }
+                }
+                this.logEvent(`Fluid changed to ${fluidName} (ρ = ${val})`);
+            });
+        }
+
+        const squeezeSlider = document.getElementById("squeeze-slider") as HTMLInputElement;
+        const squeezeVal = document.getElementById("squeeze-val");
+        if (squeezeSlider && squeezeVal) {
+            squeezeSlider.addEventListener("input", (e) => {
+                this.throatScale = parseFloat((e.target as HTMLInputElement).value);
+                squeezeVal.innerText = `${Math.round(this.throatScale * 100)}% Scale`;
+            });
+            squeezeSlider.addEventListener("change", () => {
+                this.logEvent(`Throat Aperture scaled to ${Math.round(this.throatScale * 100)}%`);
+            });
+        }
 
         // --- BULLETPROOF EVENT LISTENERS ---
         const qSlider = document.getElementById("q-slider") as HTMLInputElement;
@@ -358,7 +408,27 @@ export default class VenturiController {
 
         const engineDeltaSeconds = scene.getEngine().getDeltaTime() / 1000.0;
 
+        const basePressurePa = 117720;
+        this.totalHeadH = basePressurePa / (this.fluidDensity * this.g);
+
         if (this.flowRateQ > 0 && this.waterColumns.length > 0) {
+            for (let i = 0; i < 11; i++) {
+                let r = i <= 5 ? 0.3 - (i / 5) * (0.2) : 0.1 + ((i - 5) / 5) * (0.2);
+                let currentScale = 1.0;
+
+                // Smoothly taper the pinch scale so it looks physically natural
+                if (i === 5) currentScale = this.throatScale;
+                else if (i === 4 || i === 6) currentScale = 1.0 - (1.0 - this.throatScale) * 0.5;
+
+                this.areas[i] = Math.PI * Math.pow(r * currentScale, 2);
+
+                // Squeeze the 3D meshes
+                const pipe = scene.getMeshByName(`venturiSeg_${i}`);
+                if (pipe) {
+                    pipe.scaling.y = currentScale;
+                    pipe.scaling.z = currentScale;
+                }
+            }
             for (let i = 0; i < this.waterColumns.length; i++) {
                 const v = this.flowRateQ / this.areas[i];
                 const velocityHead = Math.pow(v, 2) / (2 * this.g);
@@ -381,7 +451,7 @@ export default class VenturiController {
 
             // --- CRITICAL FIX: PREVENT WATER FROM SHOOTING PAST TANK ---
             // Calculate exact time needed to travel from emitter to the center of the tank
-            const distanceToTank = 9500; 
+            const distanceToTank = 9500;
             this.flowParticles.minLifeTime = distanceToTank / (baseSpeed * 1.5);
             this.flowParticles.maxLifeTime = distanceToTank / baseSpeed;
 
