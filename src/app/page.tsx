@@ -127,7 +127,6 @@ export default function Home() {
     return (
         <div style={{
             background: 'radial-gradient(circle at 50% 0%, #1a2a3a 0%, #0d1117 60%)',
-            backgroundColor: '#0d1117',
             color: '#ffffff',
             minHeight: '100vh',
             fontFamily: '"JetBrains Mono", "Courier New", Courier, monospace',
