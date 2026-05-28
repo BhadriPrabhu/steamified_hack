@@ -32,6 +32,27 @@ export default class VenturiController {
     private eglLine!: Mesh;
     private dashboardTexture!: DynamicTexture;
 
+    // --- NEW: Event Log Helper Method ---
+    private logEvent(message: string) {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', { hour12: false }); // Get HH:MM:SS
+        
+        // Dynamically color code the text based on the event type
+        let color = "#a0aec0"; 
+        if (message.includes("ENGAGED")) color = "#00ffaa"; // Neon Green
+        if (message.includes("HALTED")) color = "#ff4444"; // Red
+        if (message.includes("adjusted")) color = "#00e6ff"; // Cyan
+
+        const logHtml = `<div style="margin-bottom: 6px; line-height: 1.4;"><span style="color: #586069;">[${timeString}]</span> <span style="color: ${color};">${message}</span></div>`;
+        
+        const container = document.getElementById("event-log-container");
+        if (container) {
+            container.insertAdjacentHTML('beforeend', logHtml);
+            container.scrollTop = container.scrollHeight; // Auto-scroll to the newest log at the bottom
+        }
+    }
+    // ------------------------------------
+
     public constructor(public mesh: Mesh) { }
 
     public onStart(): void {
@@ -89,14 +110,12 @@ export default class VenturiController {
         metalMat.specularColor = new Color3(0, 0, 0);
         metalMat.ambientColor = new Color3(0.1, 0.1, 0.15);
 
-        // CRITICAL FIX: The dedicated material for the main horizontal pipe!
         const pipeMat = new StandardMaterial("pipeMat", scene);
-        pipeMat.diffuseColor = new Color3(0.0, 0.8, 1.0); // Cyan glass tint
-        pipeMat.emissiveColor = new Color3(0.0, 0.1, 0.2); // Very subtle neon glow
-        pipeMat.alpha = 0.15; // Opaque enough to see the glass walls
-        pipeMat.specularColor = new Color3(0.3, 0.5, 0.6); // Shiny glass highlights
+        pipeMat.diffuseColor = new Color3(0.0, 0.8, 1.0); 
+        pipeMat.emissiveColor = new Color3(0.0, 0.1, 0.2); 
+        pipeMat.alpha = 0.15; 
+        pipeMat.specularColor = new Color3(0.3, 0.5, 0.6); 
         pipeMat.backFaceCulling = true;
-        // NOTE: NO needDepthPrePass here, so it never hides the particles inside!
 
         // --- 4. APPLY MATERIALS & FETCH MESHES ---
         for (let i = 0; i < 11; i++) {
@@ -107,7 +126,6 @@ export default class VenturiController {
             if (glass) glass.material = glassMat;
 
             const pipe = scene.getMeshByName(`venturiSeg_${i}`) as Mesh;
-            // CRITICAL FIX: Apply pipeMat instead of glassMat to the main horizontal tubes!
             if (pipe) pipe.material = pipeMat;
 
             [`joint_${i}`, `fitting_${i}`, `strut_${i}`, `glassCap_${i}`].forEach(name => {
@@ -139,11 +157,10 @@ export default class VenturiController {
         this.eglLine.rotation.z = Math.PI / 2;
         this.eglLine.material = eglMat;
 
-        // --- 6. PARTICLE SYSTEM (SUPERCHARGED WATER FLOW) ---
+        // --- 6. PARTICLE SYSTEM ---
         this.flowParticles = new ParticleSystem("particles", 4000, scene);
         this.flowParticles.particleTexture = new Texture("https://assets.babylonjs.com/textures/flare.png", scene);
         this.flowParticles.emitter = new Vector3(-5 * this.stepSize, 0, 0);
-        // Expanded emit box to fill the pipe perfectly
         this.flowParticles.minEmitBox = new Vector3(0, -380, -380);
         this.flowParticles.maxEmitBox = new Vector3(0, 380, 380);
 
@@ -155,10 +172,7 @@ export default class VenturiController {
         this.flowParticles.maxSize = 650.0;
         this.flowParticles.minLifeTime = 2.0;
         this.flowParticles.maxLifeTime = 3.5;
-
-        // CRITICAL FIX: Increased emitRate heavily so the water looks incredibly thick and visible!
         this.flowParticles.emitRate = 3500;
-
         this.flowParticles.direction1 = new Vector3(1, 0, 0);
         this.flowParticles.direction2 = new Vector3(1, 0, 0);
         this.flowParticles.gravity = new Vector3(0, 0, 0);
@@ -180,7 +194,7 @@ export default class VenturiController {
         const activeCamera = scene.activeCamera as ArcRotateCamera;
         if (activeCamera instanceof ArcRotateCamera) {
             activeCamera.target.set(0, 5000, 0);
-            activeCamera.radius = 19000;
+            activeCamera.radius = 20000;
             activeCamera.maxZ = 100000;
 
             const camLight = new PointLight("camLight", Vector3.Zero(), scene);
@@ -203,7 +217,7 @@ export default class VenturiController {
         ui.style.position = "fixed";
         ui.style.top = "10px";
         ui.style.left = "10px";
-        ui.style.width = "300px";
+        ui.style.width = "320px"; // Slightly widened to fit the log cleanly
         ui.style.backgroundColor = "rgba(13, 17, 23, 0.85)";
         ui.style.border = "1px solid #00e6ff";
         ui.style.borderRadius = "8px";
@@ -223,31 +237,46 @@ export default class VenturiController {
                 <h4 style="color: #ff4444; margin: 0 0 15px 0; font-size: 14px; font-weight: normal; letter-spacing: 1px;">Verification of Bernoulli's equation - Venturi Simulation</h4>
                 <div style="font-size: 12px; color: #8b949e; line-height: 1.8;">
                     
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 10px;">
                         <span style="color: #00e6ff; font-weight: bold;">[ 1 ]</span> <b style="color: #fff;">SYSTEM FLOW RATE (Q):</b>
                         <input type="range" id="q-slider" min="0.01" max="0.35" step="0.01" value="${this.flowRateQ}" style="width: 100%; margin-top: 8px; cursor: pointer; accent-color: #00e6ff;">
                         <div style="text-align: right; color: #00e6ff; font-size: 12px; font-weight: bold; margin-top: 4px;" id="q-val">${this.flowRateQ.toFixed(2)} m³/s</div>
                     </div>
 
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 10px;">
                         <span style="color: #00e6ff; font-weight: bold;">[ 2 ]</span> <b style="color: #fff;">VOLUMETRIC DISCHARGE:</b>
                         <button id="sw-btn" style="width: 100%; padding: 10px; margin-top: 8px; background: #1a2a40; color: #00e6ff; border: 1px solid #00e6ff; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.3s; font-family: 'Courier New';">START STOPWATCH</button>
                     </div>
 
-                    <div><span style="color: #00e6ff; font-weight: bold;">[ 3 ]</span> <b style="color: #ff4444;">EGL LINE:</b> Tracks Total Energy.</div>
+                    <div style="margin-bottom: 10px;"><span style="color: #00e6ff; font-weight: bold;">[ 3 ]</span> <b style="color: #ff4444;">EGL LINE:</b> Tracks Total Energy.</div>
+
+                    <div style="border-top: 1px solid #1a2a40; padding-top: 10px;">
+                        <span style="color: #00e6ff; font-weight: bold;">[ 4 ]</span> <b style="color: #fff;">LIVE EVENT LOG:</b>
+                        <div id="event-log-container" style="margin-top: 8px; width: 100%; height: 110px; background: #080c14; border: 1px solid #1a2a40; border-radius: 4px; padding: 8px; font-size: 11px; overflow-y: auto; box-sizing: border-box; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);">
+                            </div>
+                    </div>
+
                 </div>
             </div>
         `;
 
         document.body.appendChild(ui);
 
+        // --- Push Initial Log ---
+        this.logEvent("Simulation Engine Initialized.");
+
         // --- BULLETPROOF EVENT LISTENERS ---
         const qSlider = document.getElementById("q-slider") as HTMLInputElement;
         const qVal = document.getElementById("q-val");
         if (qSlider && qVal) {
+            // Live updates visual numbers
             qSlider.addEventListener("input", (e) => {
                 this.flowRateQ = parseFloat((e.target as HTMLInputElement).value);
                 qVal.innerText = `${this.flowRateQ.toFixed(2)} m³/s`;
+            });
+            // 'change' event fires only when the user finishes dragging, preventing log spam!
+            qSlider.addEventListener("change", () => {
+                this.logEvent(`Flow Rate adjusted to ${this.flowRateQ.toFixed(2)} m³/s`);
             });
         }
 
@@ -260,12 +289,14 @@ export default class VenturiController {
                     swBtn.style.background = "rgba(255, 68, 68, 0.2)";
                     swBtn.style.borderColor = "#ff4444";
                     swBtn.style.color = "#ff4444";
+                    this.logEvent("Volumetric tracking ENGAGED.");
                 } else {
                     this.runStopwatch = 0;
                     swBtn.innerText = "START STOPWATCH";
                     swBtn.style.background = "#1a2a40";
                     swBtn.style.borderColor = "#00e6ff";
                     swBtn.style.color = "#00e6ff";
+                    this.logEvent(`Tracking HALTED. Collected: ${this.collectedVolume.toFixed(1)} L`);
                 }
             });
         }
@@ -306,7 +337,6 @@ export default class VenturiController {
         const minBtn = document.getElementById("ui-minimize");
         const content = document.getElementById("ui-content");
 
-        // Stop the click/pointer from bubbling up to the draggable header
         minBtn!.addEventListener("pointerdown", (e) => {
             e.stopPropagation();
         });
