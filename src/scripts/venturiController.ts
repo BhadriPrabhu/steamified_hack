@@ -379,6 +379,12 @@ export default class VenturiController {
             this.flowParticles.minEmitPower = baseSpeed;
             this.flowParticles.maxEmitPower = baseSpeed * 1.5;
 
+            // --- CRITICAL FIX: PREVENT WATER FROM SHOOTING PAST TANK ---
+            // Calculate exact time needed to travel from emitter to the center of the tank
+            const distanceToTank = 9500; 
+            this.flowParticles.minLifeTime = distanceToTank / (baseSpeed * 1.5);
+            this.flowParticles.maxLifeTime = distanceToTank / baseSpeed;
+
             // --- REAL-TIME TELEMETRY DRAWING ---
             if (this.dashboardTexture) {
                 const ctx = this.dashboardTexture.getContext();
